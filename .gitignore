@@ -1,0 +1,16 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temp zip fragments (leftover from zip tool)
+zi*
+
+# Deploy zips — built from CI or locally, not source
+*.zip
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
