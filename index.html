@@ -272,15 +272,16 @@
     top: 0;
     z-index: 200;
     background: var(--bg);
-    padding-top: 16px;
   }
   .app-header {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding-bottom: 16px;
+    padding: 16px 24px;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 24px;
+    margin-bottom: 0;
+    width: 100%;
+    box-sizing: border-box;
   }
   .app-logo { max-width: 130px; max-height: 40px; width: auto; height: auto; display: block; }
   /* Nav gradient bar — below nav pill row */
@@ -329,7 +330,11 @@
   .nav-tabs-wrap {
     display: flex;
     justify-content: center;
-    margin-bottom: 24px;
+    margin-bottom: 0;
+    padding: 12px 24px;
+    width: 100%;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--border);
   }
   .nav-tabs {
     display: inline-flex;
@@ -1051,8 +1056,8 @@
   }
   .trade-setup:focus, .trade-result:focus, .trade-pnl:focus,
   .trade-source:focus, .trade-notes:focus { outline: none; border-color: var(--pink); }
-  .trade-result.win { border-color: #00fffc; color: #00fffc; }
-  .trade-result.loss { border-color: #fc00ff; color: #fc00ff; }
+  .trade-result.win { border-color: #00fffc; color: #00fffc; background: rgba(0,255,252,0.1); font-weight: 700; }
+  .trade-result.loss { border-color: #fc00ff; color: #fc00ff; background: rgba(252,0,255,0.1); font-weight: 700; }
   .trade-result.be { border-color: var(--muted); color: var(--muted); }
   .trade-del {
     background: transparent;
@@ -1936,6 +1941,81 @@
   }
 
   /* ===========================
+     DESKTOP SIDEBAR NAV
+     =========================== */
+  .app-content-layout {
+    display: block;
+  }
+  .app-sidebar {
+    display: none;
+  }
+  @media (min-width: 769px) {
+    .app-content-layout {
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+    .app-sidebar {
+      display: flex;
+      flex-direction: column;
+      width: 200px;
+      min-width: 200px;
+      min-height: calc(100vh - 120px);
+      border-right: 1px solid var(--border);
+      padding: 20px 12px 20px 0;
+      position: sticky;
+      top: 0;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .app-sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 8px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: none;
+      background: transparent;
+    }
+    .app-sidebar-item:hover {
+      background: var(--panel2);
+      color: var(--text);
+    }
+    .app-sidebar-item.active {
+      background: linear-gradient(135deg, rgba(252,0,255,0.12), rgba(0,255,252,0.07));
+      color: var(--text);
+      border: 1px solid rgba(252,0,255,0.2);
+    }
+    .app-sidebar-item .sidebar-icon {
+      font-size: 15px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .app-sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 6px 14px;
+    }
+    .app-main-content {
+      flex: 1;
+      min-width: 0;
+      padding-left: 24px;
+    }
+    /* Hide pill nav on desktop — sidebar replaces it */
+    .nav-tabs-wrap { display: none !important; }
+    .hamburger-btn { display: none !important; }
+  }
+
+  /* ===========================
      HAMBURGER BUTTON
      =========================== */
   .hamburger-btn {
@@ -2035,7 +2115,7 @@
     width: 100%;
     padding: 13px 14px;
     border-radius: 10px;
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: system-ui, -apple-system, sans-serif;
     font-size: 13px;
     font-weight: 600;
     letter-spacing: 0.05em;
@@ -2493,9 +2573,9 @@
 </div>
 
 <!-- APP SHELL (shown when logged in) -->
-<div id="appShell" class="app-wrap" style="display:none">
-  <!-- Nav area — wraps header + pill nav; can be made sticky via admin toggle -->
-  <div id="appNavArea">
+<div id="appShell" style="display:none">
+  <!-- Nav area — full width, wraps header + pill nav; can be made sticky via admin toggle -->
+  <div id="appNavArea" style="width:100%">
   <div class="app-header">
     <!-- Hamburger — mobile only -->
     <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleNavDrawer()" aria-label="Open menu">
@@ -2506,7 +2586,6 @@
     <div class="app-header-logo">
       <img id="appLogo" class="app-logo" src="" alt="Elexia" style="display:none" />
       <div id="appLogoText" class="app-logo-text">ELEXIA</div>
-      <div class="app-tagline">TRADE JOURNAL</div>
     </div>
 
     <!-- Avatar with dropdown -->
@@ -2551,6 +2630,36 @@
   <div id="navGradientBar"></div>
   </div><!-- /#appNavArea -->
 
+  <!-- Content wrapper — constrained width -->
+  <div class="app-wrap">
+  <div class="app-content-layout">
+
+  <!-- Desktop sidebar nav -->
+  <nav class="app-sidebar" id="appSidebar">
+    <button class="app-sidebar-item active" data-stab="journal" onclick="switchTab('journal')">
+      <span class="sidebar-icon">📋</span> Journal
+    </button>
+    <button class="app-sidebar-item" data-stab="dashboard" onclick="switchTab('dashboard')">
+      <span class="sidebar-icon">📊</span> Dashboard
+    </button>
+    <button class="app-sidebar-item" data-stab="accounts" onclick="switchTab('accounts')">
+      <span class="sidebar-icon">💼</span> Accounts
+    </button>
+    <div class="app-sidebar-divider"></div>
+    <button class="app-sidebar-item" data-stab="settings" onclick="switchTab('settings')">
+      <span class="sidebar-icon">⚙️</span> Settings
+    </button>
+    <button class="app-sidebar-item" data-stab="profile" onclick="switchTab('profile')">
+      <span class="sidebar-icon">👤</span> Profile
+    </button>
+    <button class="app-sidebar-item" data-stab="admin" id="sidebarAdminItem" style="display:none" onclick="switchTab('admin')">
+      <span class="sidebar-icon">★</span> Admin
+    </button>
+  </nav>
+
+  <!-- Main content area -->
+  <div class="app-main-content">
+
   <!-- Hidden account picker — JS compatibility, not shown in UI -->
   <select id="accountPicker" style="display:none" onchange="onAccountChange()"></select>
 
@@ -2561,9 +2670,10 @@
       <div class="journal-toolbar">
         <div class="date-nav">
           <button class="date-arrow" onclick="changeDate(-1)" title="Previous day">‹</button>
-          <input type="date" id="journalDate" class="date-display" onchange="loadSession()" />
+          <input type="date" id="journalDate" class="date-display" onchange="loadSession();updateDayLabel()" />
           <button class="date-arrow" onclick="changeDate(1)" title="Next day">›</button>
         </div>
+        <span id="journalDayLabel" style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.06em"></span>
         <button class="today-btn" onclick="jumpToToday()" title="Jump to today">Today</button>
       </div>
       <!-- Live market session widget -->
@@ -2763,7 +2873,6 @@
       <button class="journal-subtab" data-stab="algos"  onclick="switchSettingsTab('algos')">Algos</button>
       <button class="journal-subtab" data-stab="review" onclick="switchSettingsTab('review')">Review</button>
       <button class="journal-subtab" data-stab="goals"  onclick="switchSettingsTab('goals')">Goals</button>
-      <button class="journal-subtab" data-stab="import" onclick="switchSettingsTab('import')">Import</button>
     </div>
 
     <!-- Rules -->
@@ -2810,25 +2919,6 @@
         <p style="font-size:12px;color:var(--muted);margin:0 0 12px 0">Track personal goals — show your progress over time. Daily/weekly/monthly P&L targets, % win rate goals, account passing milestones, etc.</p>
         <div id="goalsSettings" class="settings-list"></div>
         <button class="settings-add" onclick="addGoal()">+ Add Goal</button>
-      </div>
-    </div>
-
-    <!-- Import -->
-    <div id="sst-import" style="display:none">
-      <div class="panel">
-        <div class="panel-title">Import from Old App</div>
-        <p style="font-size:13px;color:var(--muted);margin:0 0 12px 0;line-height:1.5">
-          Got a backup of your old localStorage journal? Paste it here to import all your sessions, trades, rules, and setups into the cloud.<br><br>
-          <strong>How to get your backup:</strong> Open your old journal in Chrome → Right-click → Inspect → Console tab → paste:
-          <code style="display:block;background:var(--bg);padding:8px;border-radius:6px;font-size:11px;margin:6px 0;word-break:break-all">JSON.stringify(Object.fromEntries(Object.entries(localStorage).filter(([k])=>k.startsWith('elexia:'))))</code>
-          Copy the output (right-click the result → Copy string contents) and paste below.
-        </p>
-        <textarea id="importJson" class="notes-area" placeholder='Paste your backup JSON here…' style="min-height:120px;font-family:monospace;font-size:12px"></textarea>
-        <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-          <button class="auth-btn primary" onclick="previewImport()" style="flex:1;max-width:200px">Preview</button>
-          <button class="auth-btn primary" id="confirmImportBtn" onclick="runImport()" style="flex:1;max-width:200px;display:none">Confirm Import</button>
-        </div>
-        <div id="importStatus" class="save-status" style="margin-top:8px;text-align:left;white-space:pre-line"></div>
       </div>
     </div>
 
@@ -2888,6 +2978,12 @@
         User ID: <span id="infoId" style="color:var(--muted);font-size:11px">—</span><br>
         Joined: <span id="infoJoined" style="color:var(--muted)">—</span>
       </p>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <h3 class="panel-title">Download Data</h3>
+      <p style="color:var(--muted);font-size:13px;margin:0 0 12px;">Export all your trades and account data as JSON.</p>
+      <button class="btn btn-primary" onclick="downloadData()">⬇ Download JSON</button>
     </div>
   </div>
 
@@ -3221,7 +3317,11 @@
       </div>
     </div>
   </div>
-</div>
+
+  </div><!-- /.app-main-content -->
+  </div><!-- /.app-content-layout -->
+  </div><!-- /.app-wrap content wrapper -->
+</div><!-- /#appShell -->
 
 <!-- Toast -->
 <div id="toast" class="toast"></div>
@@ -3387,6 +3487,20 @@
 
   async function signOut() {
     await sb.auth.signOut();
+    location.reload();
+  }
+
+  async function downloadData() {
+    if (!currentUser) return;
+    const { data: trades } = await sb.from('trades').select('*').eq('user_id', currentUser.id);
+    const { data: accounts } = await sb.from('accounts').select('*').eq('user_id', currentUser.id);
+    const blob = new Blob([JSON.stringify({ trades, accounts, exportedAt: new Date().toISOString() }, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `elexia-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   // ============================================================
@@ -3452,13 +3566,14 @@
       document.getElementById('profileAvatarInitial').style.display = '';
     }
 
-    // Admin — show admin tab + profile admin section + drawer item + avatar dropdown item
+    // Admin — show admin tab + profile admin section + drawer item + avatar dropdown item + sidebar item
     const isAdmin = !!currentProfile?.is_admin;
     const _d = (id, show) => { const el = document.getElementById(id); if (el) el.style.display = show ? 'block' : 'none'; };
     _d('adminTab',            isAdmin);
     _d('profileAdminSection', isAdmin);
     _d('drawerAdminItem',     isAdmin);
     _d('avatarDropdownAdmin', isAdmin);
+    _d('sidebarAdminItem',    isAdmin);
   }
 
   async function uploadAvatar(file) {
@@ -3569,7 +3684,7 @@
     activeSettingsTab = tab;
     document.querySelectorAll('[data-stab]').forEach(b =>
       b.classList.toggle('active', b.dataset.stab === tab));
-    ['rules','setups','algos','review','goals','import'].forEach(t => {
+    ['rules','setups','algos','review','goals'].forEach(t => {
       const el = document.getElementById('sst-' + t);
       if (el) el.style.display = (t === tab) ? 'block' : 'none';
     });
@@ -3581,6 +3696,8 @@
     document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
     // Update drawer active state
     document.querySelectorAll('.nav-drawer-item').forEach(b => b.classList.toggle('active', b.dataset.drawtab === tab));
+    // Update sidebar active state
+    document.querySelectorAll('.app-sidebar-item').forEach(b => b.classList.toggle('active', b.dataset.stab === tab));
     document.getElementById('tabJournal').style.display   = tab === 'journal'   ? 'block' : 'none';
     document.getElementById('tabDashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
     document.getElementById('tabAccounts').style.display  = tab === 'accounts'  ? 'block' : 'none';
@@ -3970,6 +4087,18 @@
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
+  function updateDayLabel() {
+    const el = document.getElementById('journalDayLabel');
+    if (!el) return;
+    const dateVal = document.getElementById('journalDate')?.value;
+    if (!dateVal) { el.textContent = ''; return; }
+    // Parse YYYY-MM-DD as local date (avoid UTC offset issues)
+    const [y, m, d] = dateVal.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    const dayName = date.toLocaleDateString('en-AU', { weekday: 'long' });
+    const dateStr = date.toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' });
+    el.textContent = `${dayName}, ${dateStr}`;
+  }
   function formatMoney(n) {
     const v = Number(n) || 0;
     return (v < 0 ? '-$' : '$') + Math.abs(v).toFixed(2);
@@ -4088,6 +4217,7 @@
 
     // Set today's date in picker
     document.getElementById('journalDate').value = todayLocal();
+    updateDayLabel();
 
     // Fill account picker
     renderAccountPicker();
@@ -4116,6 +4246,7 @@
     const d = new Date(input.value + 'T00:00:00');
     d.setDate(d.getDate() + delta);
     input.value = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    updateDayLabel();
     loadSession();
   }
 
@@ -4449,6 +4580,13 @@
           <select style="flex:1;min-width:120px;padding:6px 10px;background:var(--panel2);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="updateTrade(${i},'account_id',this.value)">
             ${acctOpts}
           </select>
+          <span style="font-size:11px;color:var(--muted);flex-shrink:0">Session:</span>
+          <select style="padding:6px 10px;background:var(--panel2);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="updateTrade(${i},'session',this.value)">
+            <option value="">—</option>
+            ${['Asia','London','New York','Globex'].map(s=>`<option value="${s}" ${t.session===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+          <span style="font-size:11px;color:var(--muted);flex-shrink:0">Time:</span>
+          <input type="time" value="${t.trade_time||''}" style="padding:6px 10px;background:var(--panel2);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="updateTrade(${i},'trade_time',this.value)" />
         </div>
         <input type="text" class="trade-notes" placeholder="Notes…" value="${escapeHtml(t.notes || '')}" onchange="updateTrade(${i},'notes',this.value)" style="grid-column:2/-1" />
         <div class="trade-photo-row" style="grid-column:2/-1">
@@ -4459,7 +4597,30 @@
     }).join('');
   }
 
+  function getCurrentETSession() {
+    // Returns the current NQ session name based on ET time
+    const etStr = new Date().toLocaleString('en-US', {
+      timeZone: 'America/New_York',
+      hour: '2-digit', minute: '2-digit', hour12: false
+    });
+    const parts = etStr.split(':');
+    const h = parseInt(parts[0]) % 24;
+    const m = parseInt(parts[1]);
+    const nowMins = h * 60 + m;
+    if (nowMins >= 9 * 60 + 30 && nowMins < 16 * 60) return 'New York';
+    if (nowMins >= 3 * 60 && nowMins < 8 * 60 + 30) return 'London';
+    if (nowMins >= 18 * 60 && nowMins < 23 * 60) return 'Asia';
+    return 'Globex';
+  }
+
+  function getCurrentLocalTimeStr() {
+    const now = new Date();
+    return String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+
   function addTrade() {
+    const session = getCurrentETSession();
+    const timeStr = getCurrentLocalTimeStr();
     currentTrades.push({
       setup: '',
       result: '',
@@ -4467,7 +4628,9 @@
       source: 'manual',
       notes: '',
       account_id: activeAccountId || null,
-      trade_order: currentTrades.length
+      trade_order: currentTrades.length,
+      session: session,
+      trade_time: timeStr
     });
     renderTrades();
     renderSummary();
@@ -4482,6 +4645,22 @@
     if (field === 'source') {
       currentTrades[idx].setup = '';
       renderTrades();
+    }
+    // If result changed to Loss, auto-negate PnL if it's currently positive
+    if (field === 'result' && value === 'L') {
+      const pnl = currentTrades[idx].pnl;
+      if (pnl !== null && pnl > 0) {
+        currentTrades[idx].pnl = -Math.abs(pnl);
+        renderTrades();
+      }
+    }
+    // If result changed to Win, auto-make PnL positive if it's currently negative
+    if (field === 'result' && value === 'W') {
+      const pnl = currentTrades[idx].pnl;
+      if (pnl !== null && pnl < 0) {
+        currentTrades[idx].pnl = Math.abs(pnl);
+        renderTrades();
+      }
     }
     renderSummary();
     scheduleSave();
@@ -4884,8 +5063,8 @@
     const failedAccounts = userAccounts.filter(a => a.status === 'failed');
 
     // ── TYPE SUMMARY CARDS (active only) ────────────────────────
-    const TYPES = ['eval','funded','personal','sim'];
-    const TYPE_LABELS = { eval:'EVAL', funded:'FUNDED', personal:'PERSONAL', sim:'SIM' };
+    const TYPES = ['personal','funded','eval','sim'];
+    const TYPE_LABELS = { personal:'PERSONAL', funded:'FUNDED', eval:'EVAL', sim:'SIM' };
     const td = {};
     TYPES.forEach(t => { td[t] = { accounts:[], starting:0, current:0, activeCount:0, totalPayouts:0, totalCost:0 }; });
 
@@ -5982,6 +6161,7 @@
 
   function jumpToDay(ymd) {
     document.getElementById('journalDate').value = ymd;
+    updateDayLabel();
     switchTab('journal');
   }
   async function init() {
@@ -6050,6 +6230,7 @@
   // ============================================================
   function jumpToToday() {
     document.getElementById('journalDate').value = todayLocal();
+    updateDayLabel();
     loadSession();
   }
 
@@ -6087,14 +6268,30 @@
   }
 
   // ============================================================
-  // LIVE MARKET SESSION WIDGET  (CME / MNQ — times in US Eastern)
+  // LIVE MARKET SESSION WIDGET  (CME / NQ Futures — times in US Eastern)
   // ============================================================
   (function() {
+    // NQ/MNQ sessions (ET times)
+    // Asia:    6:00 PM – 11:00 PM ET  (18:00–23:00)
+    // London:  3:00 AM – 8:30 AM ET   (03:00–08:30)
+    // NY RTH:  9:30 AM – 4:00 PM ET   (09:30–16:00)
+    // Globex (extended): rest of open market hours
+    // Market open: Sun 6PM ET → Fri 5PM ET (with daily 5–6 PM ET maintenance break)
     const SESSIONS = [
-      { name: 'Asia',     color: '#9b72ff', startH: 18, startM: 0,  endH: 3,  endM: 0,  cross: true  },
+      { name: 'Asia',     color: '#9b72ff', startH: 18, startM: 0,  endH: 23, endM: 0,  cross: false },
       { name: 'London',   color: '#4d94ff', startH: 3,  startM: 0,  endH: 8,  endM: 30, cross: false },
-      { name: 'New York', color: '#00fffc', startH: 8,  startM: 30, endH: 17, endM: 0,  cross: false },
+      { name: 'New York', color: '#00fffc', startH: 9,  startM: 30, endH: 16, endM: 0,  cross: false },
     ];
+
+    function getETDate() {
+      const s = new Date().toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false,
+        weekday: 'long'
+      });
+      return s;
+    }
 
     function etMins() {
       const s = new Date().toLocaleString('en-US', {
@@ -6105,6 +6302,14 @@
       const h = parseInt(parts[0]) % 24;
       const m = parseInt(parts[1]);
       return h * 60 + m;
+    }
+
+    function etDayOfWeek() {
+      const s = new Date().toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'long'
+      });
+      return s; // e.g. "Saturday"
     }
 
     function etTimeStr() {
@@ -6118,6 +6323,18 @@
       const h = Math.floor(m / 60);
       const mm = m % 60;
       return h > 0 ? `${h}h ${String(mm).padStart(2,'0')}m` : `${mm}m`;
+    }
+
+    // NQ Futures market is CLOSED:
+    //   - All day Saturday
+    //   - Sunday before 6:00 PM ET
+    //   - Daily 5:00 PM – 6:00 PM ET maintenance break
+    function isMarketOpen(nowMins, dayOfWeek) {
+      if (dayOfWeek === 'Saturday') return false;
+      if (dayOfWeek === 'Sunday' && nowMins < 18 * 60) return false;
+      // Daily maintenance break: 5:00 PM – 6:00 PM ET
+      if (nowMins >= 17 * 60 && nowMins < 18 * 60) return false;
+      return true;
     }
 
     function isActive(s, now) {
@@ -6137,7 +6354,37 @@
       const el = document.getElementById('marketSessionWidget');
       if (!el) return;
       const now = etMins();
+      const dow = etDayOfWeek();
+      const marketOpen = isMarketOpen(now, dow);
+
+      if (!marketOpen) {
+        // Market closed
+        let reopenMsg = '';
+        if (dow === 'Saturday') {
+          reopenMsg = 'Opens Sunday at 6:00 PM ET';
+        } else if (dow === 'Sunday') {
+          const minsUntilOpen = minsUntil(18 * 60, now);
+          reopenMsg = `Opens in <b>${fmtMins(minsUntilOpen)}</b>`;
+        } else {
+          // Maintenance break (5-6 PM)
+          const minsUntilOpen = minsUntil(18 * 60, now);
+          reopenMsg = `Maintenance break — reopens in <b>${fmtMins(minsUntilOpen)}</b>`;
+        }
+        el.innerHTML = `
+          <div class="ms-sessions">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:10px;height:10px;border-radius:50%;background:#ff4444;flex-shrink:0"></div>
+              <span style="color:#ff6666;font-size:13px;font-weight:700;letter-spacing:0.05em">MARKET CLOSED</span>
+            </div>
+          </div>
+          <div class="ms-next">${dow} &nbsp;·&nbsp; ET ${etTimeStr()} &nbsp;·&nbsp; ${reopenMsg}</div>`;
+        return;
+      }
+
       const active = SESSIONS.filter(s => isActive(s, now));
+
+      // Determine if currently in "Globex/Extended" (market open but no named session)
+      const inGlobex = marketOpen && active.length === 0;
 
       // Build next-event list
       const events = [];
@@ -6146,12 +6393,10 @@
         const endMins   = s.endH   * 60 + s.endM;
         const untilStart = minsUntil(startMins, now);
         const untilEnd   = minsUntil(endMins,   now);
-        // Only push events that are actually upcoming (not the current-session end if it overlaps start timing)
         events.push({ label: s.name + ' opens',  color: s.color, mins: untilStart });
         events.push({ label: s.name + ' closes', color: s.color, mins: untilEnd   });
       });
       events.sort((a, b) => a.mins - b.mins);
-      // Skip 0-min events (session just changed this second)
       const nextEv = events.find(e => e.mins > 0) || events[0];
 
       const pillsHtml = SESSIONS.map(s => {
@@ -6169,15 +6414,17 @@
         ? `<div class="ms-overlap">⚡ Overlap</div>`
         : '';
 
-      const sessionLabel = active.length === 0
-        ? '<span style="color:var(--dim);font-size:11px">Market interlude</span>'
+      const globexHtml = inGlobex
+        ? `<div class="ms-pill" style="border-color:#f5a62355;color:#f5a623;background:#f5a62318;">
+            <div class="ms-dot pulsing" style="background:#f5a623"></div>Globex
+           </div>`
         : '';
 
       const nextHtml = nextEv
-        ? `<div class="ms-next">ET ${etTimeStr()} &nbsp;·&nbsp; <b>${nextEv.label}</b> in <b>${fmtMins(nextEv.mins)}</b></div>`
+        ? `<div class="ms-next">${dow} &nbsp;·&nbsp; ET ${etTimeStr()} &nbsp;·&nbsp; <b>${nextEv.label}</b> in <b>${fmtMins(nextEv.mins)}</b></div>`
         : '';
 
-      el.innerHTML = `<div class="ms-sessions">${pillsHtml}${overlapHtml}${sessionLabel}</div>${nextHtml}`;
+      el.innerHTML = `<div class="ms-sessions">${pillsHtml}${globexHtml}${overlapHtml}</div>${nextHtml}`;
     };
 
     let _msInterval = null;
