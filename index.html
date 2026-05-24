@@ -4639,25 +4639,33 @@
 
   function updateTrade(idx, field, value) {
     if (!currentTrades[idx]) return;
-    if (field === 'pnl') value = value === '' ? null : parseFloat(value);
+    if (field === 'pnl') {
+      if (value === '') {
+        value = null;
+      } else {
+        const num = Math.abs(parseFloat(value));
+        const result = currentTrades[idx].result;
+        value = result === 'L' ? -num : num;
+      }
+    }
     currentTrades[idx][field] = value;
     // If source changed, also clear setup since options differ
     if (field === 'source') {
       currentTrades[idx].setup = '';
       renderTrades();
     }
-    // If result changed to Loss, auto-negate PnL if it's currently positive
+    // If result changed to Loss, auto-negate PnL
     if (field === 'result' && value === 'L') {
       const pnl = currentTrades[idx].pnl;
-      if (pnl !== null && pnl > 0) {
+      if (pnl !== null) {
         currentTrades[idx].pnl = -Math.abs(pnl);
         renderTrades();
       }
     }
-    // If result changed to Win, auto-make PnL positive if it's currently negative
+    // If result changed to Win, auto-make PnL positive
     if (field === 'result' && value === 'W') {
       const pnl = currentTrades[idx].pnl;
-      if (pnl !== null && pnl < 0) {
+      if (pnl !== null) {
         currentTrades[idx].pnl = Math.abs(pnl);
         renderTrades();
       }
@@ -4682,7 +4690,12 @@
   }
 
   function renderSummary() {
-    const total = currentTrades.reduce((s, t) => s + (parseFloat(t.pnl) || 0), 0);
+    const total = currentTrades.reduce((s, t) => {
+      let pnl = parseFloat(t.pnl) || 0;
+      if (t.result === 'L' && pnl > 0) pnl = -pnl;
+      if (t.result === 'W' && pnl < 0) pnl = -pnl;
+      return s + pnl;
+    }, 0);
     const count = currentTrades.length;
     const wins = currentTrades.filter(t => t.result === 'W').length;
     const losses = currentTrades.filter(t => t.result === 'L').length;
@@ -4830,7 +4843,8 @@
           result: t.result || null,
           pnl: t.pnl,
           source: t.source || 'manual',
-          notes: t.notes || null
+          notes: t.notes || null,
+          account_id: t.account_id || activeAccountId || null
         };
         if (t.id) payload.id = t.id;
         const { data: savedTrade, error: tErr } = await sb
