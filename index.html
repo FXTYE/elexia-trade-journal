@@ -2005,11 +2005,14 @@
       justify-content: center;
     }
     .nav-svg-icon {
-      width: 20px;
-      height: 20px;
+      width: var(--nav-icon-sz, 20px);
+      height: var(--nav-icon-sz, 20px);
       flex-shrink: 0;
       display: block;
+      fill: currentColor;   /* CSS override so mobile browsers respect it */
     }
+    /* When icon color is explicitly set via admin */
+    .sidebar-icon, .nav-drawer-icon { color: var(--nav-icon-clr, inherit); }
     /* Icon preview panel */
     #iconPreviewPanel {
       font-family: system-ui, -apple-system, sans-serif;
@@ -2595,7 +2598,7 @@
       <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg></span> Profile
     </button>
     <button class="nav-drawer-item" data-drawtab="admin" id="drawerAdminItem" style="display:none" onclick="switchTab('admin');closeNavDrawer()">
-      <span class="nav-drawer-icon">★</span> Admin
+      <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span> Admin
     </button>
   </div>
 </div>
@@ -2624,19 +2627,19 @@
       </button>
       <div class="avatar-dropdown" id="avatarDropdown" style="display:none">
         <button class="avatar-dd-item" onclick="switchTab('profile');closeAvatarDropdown()">
-          <span>👤</span> Profile
+          <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg></span> Profile
         </button>
         <button class="avatar-dd-item" onclick="switchTab('settings');closeAvatarDropdown()">
-          <span>⚙️</span> Settings
+          <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="5" r="3"/><rect x="20.5" y="3.5" width="1.5" height="3" rx="1.5"/><rect x="2" y="10.5" width="1.5" height="3" rx="1.5"/><circle cx="6.5" cy="12" r="3"/><rect x="9.5" y="10.5" width="12.5" height="3" rx="1.5"/><rect x="2" y="17.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="19" r="3"/><rect x="20.5" y="17.5" width="1.5" height="3" rx="1.5"/></svg></span> Settings
         </button>
         <div id="avatarDropdownAdmin" style="display:none">
           <button class="avatar-dd-item" onclick="switchTab('admin');closeAvatarDropdown()">
-            <span>★</span> Admin Panel
+            <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span> Admin Panel
           </button>
         </div>
         <div class="avatar-dd-divider"></div>
         <button class="avatar-dd-item danger" onclick="signOut()">
-          <span>↪</span> Sign Out
+          <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7v-2H5V5h7V3H5z"/><path d="M15.5 7.5L20 12l-4.5 4.5V14H9v-4h6.5V7.5z"/></svg></span> Sign Out
         </button>
       </div>
     </div>
@@ -2681,7 +2684,7 @@
       <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg></span> Profile
     </button>
     <button class="app-sidebar-item" data-stab="admin" id="sidebarAdminItem" style="display:none" onclick="switchTab('admin')">
-      <span class="sidebar-icon">★</span> Admin
+      <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span> Admin
     </button>
   </nav>
 
@@ -3338,6 +3341,32 @@
         </div>
       </div>
 
+      <div class="customizer-section-title">Nav Icons</div>
+      <div class="customizer-grid">
+        <div class="customizer-row">
+          <div class="customizer-label">Icon Size <small>px — sidebar &amp; drawer</small></div>
+          <div class="customizer-control">
+            <input type="range" class="customizer-range" id="cust_navIconSize" min="14" max="32" step="1" value="20"
+              oninput="custPreview();document.getElementById('custval_navIconSize').textContent=this.value+'px'" />
+            <span class="customizer-val" id="custval_navIconSize">20px</span>
+          </div>
+        </div>
+        <div class="customizer-row">
+          <div class="customizer-label">Icon Color <small>Override or leave as nav default</small></div>
+          <div class="customizer-control" style="gap:6px;flex-wrap:wrap">
+            <select class="customizer-select" id="cust_navIconPreset" onchange="custPreview()">
+              <option value="inherit">Nav default (inherit)</option>
+              <option value="white">White</option>
+              <option value="cyan">Cyan</option>
+              <option value="pink">Pink</option>
+              <option value="muted">Muted grey</option>
+              <option value="custom">Custom →</option>
+            </select>
+            <input type="color" class="customizer-color" id="cust_navIconCustomColor" value="#ffffff" oninput="custPreview()" title="Custom icon color" />
+          </div>
+        </div>
+      </div>
+
       <div class="customizer-actions">
         <button class="customizer-btn customizer-btn-apply" onclick="applyCustomTheme()">✓ Apply &amp; Save</button>
         <button class="customizer-btn customizer-btn-reset" onclick="resetCustomTheme()">↺ Reset Defaults</button>
@@ -3794,7 +3823,9 @@
     stickyNav: '0',
     navGradType: 'none', navGradH: '0', navGradOpacity: '60',
     // Layout & Sizing
-    logoSize: '40', appPadding: '24', contentPadding: '20', headerMargin: '24'
+    logoSize: '40', appPadding: '24', contentPadding: '20', headerMargin: '24',
+    // Nav Icons
+    navIconSize: '20', navIconPreset: 'inherit', navIconCustomColor: '#ffffff'
   };
 
   function custPreview() {
@@ -3960,6 +3991,25 @@
     // Header bottom margin
     const hdr = document.querySelector('.app-header');
     if (hdr) hdr.style.marginBottom = (parseFloat(v.headerMargin) || 24) + 'px';
+
+    // Nav icon size & color
+    const iconSz = (parseFloat(v.navIconSize) || 20) + 'px';
+    document.documentElement.style.setProperty('--nav-icon-sz', iconSz);
+    const iconPreset = v.navIconPreset || 'inherit';
+    const iconColorMap = {
+      inherit: '',          // remove var so CSS falls back to inherited nav color
+      white:   '#ffffff',
+      cyan:    '#00fffc',
+      pink:    '#fc00ff',
+      muted:   'var(--muted)',
+      custom:  v.navIconCustomColor || '#ffffff'
+    };
+    const iconClr = iconColorMap[iconPreset] !== undefined ? iconColorMap[iconPreset] : '';
+    if (iconClr) {
+      document.documentElement.style.setProperty('--nav-icon-clr', iconClr);
+    } else {
+      document.documentElement.style.removeProperty('--nav-icon-clr');
+    }
   }
 
   function applyCustomTheme() {
@@ -3990,7 +4040,7 @@
       if (el) el.value = def;
       const lbl = document.getElementById(`custval_${k}`);
       if (lbl) {
-        if (['fontsize','radius','shadow','logoSize','appPadding','contentPadding','headerMargin','navGradH'].includes(k)) lbl.textContent = def + 'px';
+        if (['fontsize','radius','shadow','logoSize','appPadding','contentPadding','headerMargin','navGradH','navIconSize'].includes(k)) lbl.textContent = def + 'px';
         else if (['borderOpacity','inputBorder','panelBar','glowPink','glowBlue','bgGlow','cardGlow','gradBorder','navGradOpacity'].includes(k)) lbl.textContent = def + '%';
         else if (k === 'gradDir') lbl.textContent = def + '°';
         else lbl.textContent = def;
@@ -4582,10 +4632,11 @@
           `).join('')}
         </div>
       ` : '';
-      const acctId = t.account_id || activeAccountId || '';
-      const acctOpts = userAccounts.map(a =>
-        `<option value="${a.id}" ${a.id === acctId ? 'selected' : ''}>${escapeHtml(a.name)}</option>`
-      ).join('');
+      const acctId = t.account_id || '';
+      const acctOpts = `<option value="" ${!acctId ? 'selected' : ''}>— No Account —</option>` +
+        userAccounts.map(a =>
+          `<option value="${a.id}" ${a.id === acctId ? 'selected' : ''}>${escapeHtml(a.name)}</option>`
+        ).join('');
       return `<div class="trade-row" data-idx="${i}">
         <div class="trade-num">#${i+1}</div>
         <select class="trade-setup" onchange="updateTrade(${i},'setup',this.value)">
