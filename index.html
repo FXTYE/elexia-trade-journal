@@ -1997,9 +1997,37 @@
     .app-sidebar-item .sidebar-icon {
       font-size: 15px;
       width: 20px;
+      height: 20px;
       text-align: center;
       flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+    .nav-svg-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: block;
+    }
+    /* Icon preview panel */
+    #iconPreviewPanel {
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .icon-fill-btn {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      color: #888;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: system-ui, -apple-system, sans-serif;
+      font-weight: 600;
+      padding: 4px 10px;
+      transition: all 0.15s;
+    }
+    .icon-fill-btn:hover { background: rgba(0,255,252,0.1); border-color: rgba(0,255,252,0.3); color: #00fffc; }
+    .icon-fill-btn.active { background: rgba(0,255,252,0.18); border-color: rgba(0,255,252,0.5); color: #00fffc; }
     .app-sidebar-divider {
       height: 1px;
       background: var(--border);
@@ -2131,7 +2159,7 @@
     border-color: rgba(252,0,255,0.2);
     color: var(--text);
   }
-  .nav-drawer-icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+  .nav-drawer-icon { font-size: 16px; width: 20px; height: 20px; text-align: center; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
   .nav-drawer-divider { height: 1px; background: var(--border); margin: 6px 8px; }
 
   /* ===========================
@@ -2551,20 +2579,20 @@
   </div>
   <div class="nav-drawer-items">
     <button class="nav-drawer-item active" data-drawtab="journal" onclick="switchTab('journal');closeNavDrawer()">
-      <span class="nav-drawer-icon">📋</span> Journal
+      <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5 2A2 2 0 0 0 3 4v16a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5zM7 5.5h8v4.5H7V5.5zM7 13.5h7.5V15H7v-1.5zM7 16.5h6V18H7v-1.5z"/><rect x="2" y="2" width="4.5" height="20" rx="1.5"/><polygon points="20,8 23,11 16,19 13,16"/><polygon points="13,16 16,19 14,21"/></svg></span> Journal
     </button>
     <button class="nav-drawer-item" data-drawtab="dashboard" onclick="switchTab('dashboard');closeNavDrawer()">
-      <span class="nav-drawer-icon">📊</span> Dashboard
+      <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="17" width="4" height="6"/><rect x="7" y="8" width="4" height="15"/><rect x="13" y="12" width="4" height="11"/><rect x="19" y="4" width="4" height="19"/><path d="M3 16L9 8.5 15 12 21 4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 3.5L21.5 3.5L21.5 8.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Dashboard
     </button>
     <button class="nav-drawer-item" data-drawtab="accounts" onclick="switchTab('accounts');closeNavDrawer()">
-      <span class="nav-drawer-icon">💼</span> Accounts
+      <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 4.5L12.2 2C12 1.4 12.5 1 13.2 1h7.6c.7 0 1.2.4 1 1L20.5 4.5H13.5z"/><rect x="12.5" y="4.5" width="9" height="2" rx="1"/><ellipse cx="17" cy="14" rx="6" ry="7"/><path fill-rule="evenodd" d="M1 15.5C1 14.7 1.7 14 2.5 14H13c.8 0 1.5.7 1.5 1.5V22c0 .6-.4 1-1 1H2c-.6 0-1-.4-1-1v-6.5zM6 19.5v-1h5.5v1H6z"/><path d="M4 14v-2.5a3.5 3.5 0 0 0 7 0V14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></span> Accounts
     </button>
     <div class="nav-drawer-divider"></div>
     <button class="nav-drawer-item" data-drawtab="settings" onclick="switchTab('settings');closeNavDrawer()">
-      <span class="nav-drawer-icon">⚙️</span> Settings
+      <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="5" r="3"/><rect x="20.5" y="3.5" width="1.5" height="3" rx="1.5"/><rect x="2" y="10.5" width="1.5" height="3" rx="1.5"/><circle cx="6.5" cy="12" r="3"/><rect x="9.5" y="10.5" width="12.5" height="3" rx="1.5"/><rect x="2" y="17.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="19" r="3"/><rect x="20.5" y="17.5" width="1.5" height="3" rx="1.5"/></svg></span> Settings
     </button>
     <button class="nav-drawer-item" data-drawtab="profile" onclick="switchTab('profile');closeNavDrawer()">
-      <span class="nav-drawer-icon">👤</span> Profile
+      <span class="nav-drawer-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg></span> Profile
     </button>
     <button class="nav-drawer-item" data-drawtab="admin" id="drawerAdminItem" style="display:none" onclick="switchTab('admin');closeNavDrawer()">
       <span class="nav-drawer-icon">★</span> Admin
@@ -2637,20 +2665,20 @@
   <!-- Desktop sidebar nav -->
   <nav class="app-sidebar" id="appSidebar">
     <button class="app-sidebar-item active" data-stab="journal" onclick="switchTab('journal')">
-      <span class="sidebar-icon">📋</span> Journal
+      <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5 2A2 2 0 0 0 3 4v16a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5zM7 5.5h8v4.5H7V5.5zM7 13.5h7.5V15H7v-1.5zM7 16.5h6V18H7v-1.5z"/><rect x="2" y="2" width="4.5" height="20" rx="1.5"/><polygon points="20,8 23,11 16,19 13,16"/><polygon points="13,16 16,19 14,21"/></svg></span> Journal
     </button>
     <button class="app-sidebar-item" data-stab="dashboard" onclick="switchTab('dashboard')">
-      <span class="sidebar-icon">📊</span> Dashboard
+      <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="17" width="4" height="6"/><rect x="7" y="8" width="4" height="15"/><rect x="13" y="12" width="4" height="11"/><rect x="19" y="4" width="4" height="19"/><path d="M3 16L9 8.5 15 12 21 4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 3.5L21.5 3.5L21.5 8.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span> Dashboard
     </button>
     <button class="app-sidebar-item" data-stab="accounts" onclick="switchTab('accounts')">
-      <span class="sidebar-icon">💼</span> Accounts
+      <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 4.5L12.2 2C12 1.4 12.5 1 13.2 1h7.6c.7 0 1.2.4 1 1L20.5 4.5H13.5z"/><rect x="12.5" y="4.5" width="9" height="2" rx="1"/><ellipse cx="17" cy="14" rx="6" ry="7"/><path fill-rule="evenodd" d="M1 15.5C1 14.7 1.7 14 2.5 14H13c.8 0 1.5.7 1.5 1.5V22c0 .6-.4 1-1 1H2c-.6 0-1-.4-1-1v-6.5zM6 19.5v-1h5.5v1H6z"/><path d="M4 14v-2.5a3.5 3.5 0 0 0 7 0V14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg></span> Accounts
     </button>
     <div class="app-sidebar-divider"></div>
     <button class="app-sidebar-item" data-stab="settings" onclick="switchTab('settings')">
-      <span class="sidebar-icon">⚙️</span> Settings
+      <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><rect x="2" y="3.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="5" r="3"/><rect x="20.5" y="3.5" width="1.5" height="3" rx="1.5"/><rect x="2" y="10.5" width="1.5" height="3" rx="1.5"/><circle cx="6.5" cy="12" r="3"/><rect x="9.5" y="10.5" width="12.5" height="3" rx="1.5"/><rect x="2" y="17.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="19" r="3"/><rect x="20.5" y="17.5" width="1.5" height="3" rx="1.5"/></svg></span> Settings
     </button>
     <button class="app-sidebar-item" data-stab="profile" onclick="switchTab('profile')">
-      <span class="sidebar-icon">👤</span> Profile
+      <span class="sidebar-icon"><svg class="nav-svg-icon" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg></span> Profile
     </button>
     <button class="app-sidebar-item" data-stab="admin" id="sidebarAdminItem" style="display:none" onclick="switchTab('admin')">
       <span class="sidebar-icon">★</span> Admin
@@ -6466,7 +6494,148 @@
   window.startMarketSessionClock();
 
   init();
+
+  // ── Icon Preview Panel ──────────────────────────────────────────────────────
+  const _NAV_ICON_SVGS = {
+    journal:   `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M5 2A2 2 0 0 0 3 4v16a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H5zM7 5.5h8v4.5H7V5.5zM7 13.5h7.5V15H7v-1.5zM7 16.5h6V18H7v-1.5z"/><rect x="2" y="2" width="4.5" height="20" rx="1.5"/><polygon points="20,8 23,11 16,19 13,16"/><polygon points="13,16 16,19 14,21"/></svg>`,
+    dashboard: `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="17" width="4" height="6"/><rect x="7" y="8" width="4" height="15"/><rect x="13" y="12" width="4" height="11"/><rect x="19" y="4" width="4" height="19"/><path d="M3 16L9 8.5 15 12 21 4" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M16.5 3.5L21.5 3.5L21.5 8.5" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    accounts:  `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M13.5 4.5L12.2 2C12 1.4 12.5 1 13.2 1h7.6c.7 0 1.2.4 1 1L20.5 4.5H13.5z"/><rect x="12.5" y="4.5" width="9" height="2" rx="1"/><ellipse cx="17" cy="14" rx="6" ry="7"/><path fill-rule="evenodd" d="M1 15.5C1 14.7 1.7 14 2.5 14H13c.8 0 1.5.7 1.5 1.5V22c0 .6-.4 1-1 1H2c-.6 0-1-.4-1-1v-6.5zM6 19.5v-1h5.5v1H6z"/><path d="M4 14v-2.5a3.5 3.5 0 0 0 7 0V14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+    settings:  `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="5" r="3"/><rect x="20.5" y="3.5" width="1.5" height="3" rx="1.5"/><rect x="2" y="10.5" width="1.5" height="3" rx="1.5"/><circle cx="6.5" cy="12" r="3"/><rect x="9.5" y="10.5" width="12.5" height="3" rx="1.5"/><rect x="2" y="17.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="19" r="3"/><rect x="20.5" y="17.5" width="1.5" height="3" rx="1.5"/></svg>`,
+    profile:   `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg>`,
+  };
+  const _ICON_LABELS = { journal:'Journal', dashboard:'Dashboard', accounts:'Accounts', settings:'Settings', profile:'Profile' };
+  let _iconFill = 'white', _iconSize = 24, _iconBg = '#111827';
+
+  function _buildIconGrid() {
+    const grid = document.getElementById('_iconPrevGrid');
+    if (!grid) return;
+    grid.innerHTML = Object.entries(_NAV_ICON_SVGS).map(([k, svg]) => `
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px">
+        <div class="_ipw" data-key="${k}" style="display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:10px;transition:background 0.2s">${svg}</div>
+        <span style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">${_ICON_LABELS[k]}</span>
+      </div>`).join('');
+    _applyIconPreview();
+  }
+
+  function _applyIconPreview() {
+    const grid = document.getElementById('_iconPrevGrid');
+    if (!grid) return;
+    grid.style.background = _iconBg;
+    const svgs = grid.querySelectorAll('svg');
+    const fills = { white:'#ffffff', cyan:'#00fffc', magenta:'#fc00ff', dark:'#1a1a2e', muted:'#6b7280' };
+    svgs.forEach(svg => {
+      svg.style.width = _iconSize + 'px';
+      svg.style.height = _iconSize + 'px';
+      if (_iconFill === 'gradient') {
+        svg.setAttribute('fill', 'url(#_ipGrad)');
+        svg.querySelectorAll('[stroke="currentColor"]').forEach(el => el.setAttribute('stroke', '#00fffc'));
+        if (!svg.querySelector('defs')) {
+          const d = document.createElementNS('http://www.w3.org/2000/svg','defs');
+          d.innerHTML = '<linearGradient id="_ipGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fc00ff"/><stop offset="100%" stop-color="#00fffc"/></linearGradient>';
+          svg.insertBefore(d, svg.firstChild);
+        }
+      } else {
+        const c = fills[_iconFill] || document.getElementById('_iconCustomColor')?.value || '#fff';
+        svg.setAttribute('fill', 'currentColor');
+        svg.style.color = c;
+        svg.querySelectorAll('[stroke="currentColor"]').forEach(el => { el.removeAttribute('stroke'); el.setAttribute('stroke', 'currentColor'); });
+        svg.querySelectorAll('defs').forEach(d => d.remove());
+      }
+    });
+    // update wrapper bg
+    grid.querySelectorAll('._ipw').forEach(w => {
+      w.style.background = _iconBg === '#ffffff' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
+    });
+    document.getElementById('_iconSizeLbl').textContent = _iconSize + 'px';
+  }
+
+  window.toggleIconPreview = function() {
+    const p = document.getElementById('_iconPrevPanel');
+    if (!p) return;
+    const open = p.style.display !== 'none';
+    p.style.display = open ? 'none' : 'block';
+    if (!open) _buildIconGrid();
+  };
+  window._setIconFill = function(fill, btn) {
+    _iconFill = fill;
+    document.querySelectorAll('#_iconPrevPanel .icon-fill-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    _applyIconPreview();
+  };
+  window._setIconSize = function(v) { _iconSize = +v; _applyIconPreview(); };
+  window._setIconBg = function(bg, btn) {
+    _iconBg = bg;
+    document.querySelectorAll('#_iconPrevPanel .bg-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    _applyIconPreview();
+  };
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') { e.preventDefault(); toggleIconPreview(); }
+  });
 </script>
+
+<!-- Hidden SVG gradient defs for icon preview -->
+<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+  <defs>
+    <linearGradient id="_ipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fc00ff"/>
+      <stop offset="100%" stop-color="#00fffc"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Icon Preview Panel -->
+<div id="_iconPrevPanel" style="display:none;position:fixed;bottom:68px;right:16px;z-index:10000;width:360px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,0.6);font-family:system-ui,-apple-system,sans-serif;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+    <span style="font-size:11px;font-weight:700;color:#555;letter-spacing:0.1em;text-transform:uppercase">Nav Icon Preview</span>
+    <button onclick="toggleIconPreview()" style="background:none;border:none;color:#555;cursor:pointer;font-size:20px;line-height:1;padding:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">×</button>
+  </div>
+
+  <!-- Icon grid -->
+  <div id="_iconPrevGrid" style="display:grid;grid-template-columns:repeat(5,1fr);border-radius:10px;padding:8px;margin-bottom:16px;transition:background 0.2s"></div>
+
+  <!-- Fill style -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px">Fill Style</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+      <button class="icon-fill-btn active" onclick="_setIconFill('white',this)">White</button>
+      <button class="icon-fill-btn" onclick="_setIconFill('cyan',this)">Cyan</button>
+      <button class="icon-fill-btn" onclick="_setIconFill('magenta',this)">Magenta</button>
+      <button class="icon-fill-btn" onclick="_setIconFill('gradient',this)">Gradient</button>
+      <button class="icon-fill-btn" onclick="_setIconFill('muted',this)">Muted</button>
+      <button class="icon-fill-btn" onclick="_setIconFill('dark',this)">Dark</button>
+      <input type="color" id="_iconCustomColor" value="#00fffc" title="Custom colour" oninput="_setIconFill('custom',null)" style="width:30px;height:28px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:none;cursor:pointer;padding:2px">
+    </div>
+  </div>
+
+  <!-- Size -->
+  <div style="margin-bottom:14px">
+    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px">Size — <span id="_iconSizeLbl">24px</span></div>
+    <input type="range" min="14" max="44" value="24" oninput="_setIconSize(this.value)" style="width:100%;accent-color:#00fffc">
+  </div>
+
+  <!-- Background -->
+  <div>
+    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px">Preview Background</div>
+    <div style="display:flex;gap:5px">
+      <button class="icon-fill-btn bg-btn active" onclick="_setIconBg('#111827',this)">App Dark</button>
+      <button class="icon-fill-btn bg-btn" onclick="_setIconBg('#1e293b',this)">Navy</button>
+      <button class="icon-fill-btn bg-btn" onclick="_setIconBg('#ffffff',this)">White</button>
+      <button class="icon-fill-btn bg-btn" onclick="_setIconBg('transparent',this)">None</button>
+    </div>
+  </div>
+
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:#333;text-align:center">
+    Toggle with <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;padding:1px 5px;font-size:10px">⌘⇧I</kbd>
+  </div>
+</div>
+
+<!-- Floating toggle button -->
+<button id="_iconPrevToggle" onclick="toggleIconPreview()" title="Icon Preview (⌘⇧I)"
+  style="position:fixed;bottom:16px;right:16px;z-index:9999;width:40px;height:40px;border-radius:10px;background:rgba(0,255,252,0.1);border:1px solid rgba(0,255,252,0.25);color:#00fffc;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(8px)"
+  onmouseover="this.style.background='rgba(0,255,252,0.2)'" onmouseout="this.style.background='rgba(0,255,252,0.1)'">
+  ⬡
+</button>
 
 </body>
 </html>
