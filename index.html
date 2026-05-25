@@ -719,6 +719,59 @@
   }
   .profile-field input:focus, .profile-field textarea:focus { border-color: var(--pink); }
   .profile-field textarea { min-height: 60px; resize: vertical; }
+  /* ── Timezone picker ── */
+  .tz-picker-wrap { position: relative; }
+  .tz-search {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  .tz-search:focus { border-color: var(--pink); }
+  .tz-dropdown {
+    display: none;
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0; right: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    max-height: 240px;
+    overflow-y: auto;
+    z-index: 9999;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .tz-dropdown.open { display: block; }
+  .tz-option {
+    padding: 9px 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.1s;
+  }
+  .tz-option:last-child { border-bottom: none; }
+  .tz-option:hover, .tz-option.focused { background: rgba(255,255,255,0.05); }
+  .tz-city { font-weight: 600; color: var(--text); flex-shrink: 0; }
+  .tz-detail { color: var(--muted); font-size: 11px; }
+  .tz-offset { color: var(--cyan, #00fffc); font-size: 11px; font-weight: 600; margin-left: auto; flex-shrink: 0; }
+  .tz-current-display {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .tz-current-display span { color: var(--text); font-weight: 600; }
   .btn {
     padding: 10px 16px;
     border-radius: 8px;
@@ -2691,7 +2744,7 @@
       <div class="journal-toolbar">
         <div class="date-nav">
           <button class="date-arrow" onclick="changeDate(-1)" title="Previous day">‹</button>
-          <input type="date" id="journalDate" class="date-display" onchange="loadSession();updateDayLabel()" />
+          <input type="date" id="journalDate" class="date-display" onchange="updateDayLabel();loadSession()" />
           <button class="date-arrow" onclick="changeDate(1)" title="Next day">›</button>
         </div>
         <span id="journalDayLabel" style="font-size:12px;color:var(--muted);font-weight:600;letter-spacing:0.06em"></span>
@@ -2979,6 +3032,20 @@
       <div class="profile-field">
         <label>Bio</label>
         <textarea id="editBio" placeholder="trader of MNQ. NY session focus."></textarea>
+      </div>
+
+      <div class="profile-field">
+        <label>Timezone</label>
+        <div class="tz-picker-wrap" id="tzPickerWrap">
+          <input type="text" class="tz-search" id="tzSearch" placeholder="Search city or timezone…" autocomplete="off"
+            oninput="filterTzOptions(this.value)"
+            onfocus="openTzDropdown()"
+            onkeydown="tzKeyNav(event)" />
+          <div class="tz-dropdown" id="tzDropdown"></div>
+        </div>
+        <div class="tz-current-display" id="tzCurrentDisplay">
+          Current time: <span id="tzCurrentTime">—</span>
+        </div>
       </div>
 
       <div style="display:flex;gap:10px;margin-top:14px">
@@ -3424,6 +3491,7 @@
   // ============================================================
   let currentUser = null;
   let currentProfile = null;
+  let userTimezone = (function(){ try { return localStorage.getItem('elexia_timezone') || Intl.DateTimeFormat().resolvedOptions().timeZone; } catch(e){ return 'America/New_York'; } })();
   let activeTab = 'journal';
 
   // ============================================================
@@ -3477,6 +3545,11 @@
     if (data.session && data.user) {
       showAuthMsg('success', 'Account created — loading your journal…');
       currentUser = data.user;
+      // Auto-detect timezone from browser on first signup
+      try {
+        const detectedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (detectedTz) { userTimezone = detectedTz; localStorage.setItem('elexia_timezone', detectedTz); }
+      } catch(e){}
       try {
         await loadProfile();
       } catch (e) {
@@ -3553,6 +3626,199 @@
   // ============================================================
   // PROFILE LOAD/SAVE
   // ============================================================
+  // ============================================================
+  // TIMEZONE PICKER
+  // ============================================================
+  const TZ_LIST = [
+    // Americas
+    { tz:'America/New_York',      city:'New York',       region:'Americas' },
+    { tz:'America/Chicago',       city:'Chicago',        region:'Americas' },
+    { tz:'America/Denver',        city:'Denver',         region:'Americas' },
+    { tz:'America/Phoenix',       city:'Phoenix',        region:'Americas' },
+    { tz:'America/Los_Angeles',   city:'Los Angeles',    region:'Americas' },
+    { tz:'America/Anchorage',     city:'Anchorage',      region:'Americas' },
+    { tz:'Pacific/Honolulu',      city:'Honolulu',       region:'Americas' },
+    { tz:'America/Toronto',       city:'Toronto',        region:'Americas' },
+    { tz:'America/Vancouver',     city:'Vancouver',      region:'Americas' },
+    { tz:'America/Montreal',      city:'Montreal',       region:'Americas' },
+    { tz:'America/Halifax',       city:'Halifax',        region:'Americas' },
+    { tz:'America/St_Johns',      city:'St. John\'s',    region:'Americas' },
+    { tz:'America/Mexico_City',   city:'Mexico City',    region:'Americas' },
+    { tz:'America/Bogota',        city:'Bogotá',         region:'Americas' },
+    { tz:'America/Lima',          city:'Lima',           region:'Americas' },
+    { tz:'America/Caracas',       city:'Caracas',        region:'Americas' },
+    { tz:'America/Santiago',      city:'Santiago',       region:'Americas' },
+    { tz:'America/Buenos_Aires',  city:'Buenos Aires',   region:'Americas' },
+    { tz:'America/Sao_Paulo',     city:'São Paulo',      region:'Americas' },
+    { tz:'America/Manaus',        city:'Manaus',         region:'Americas' },
+    // Europe
+    { tz:'Europe/London',         city:'London',         region:'Europe' },
+    { tz:'Europe/Dublin',         city:'Dublin',         region:'Europe' },
+    { tz:'Europe/Lisbon',         city:'Lisbon',         region:'Europe' },
+    { tz:'Europe/Paris',          city:'Paris',          region:'Europe' },
+    { tz:'Europe/Madrid',         city:'Madrid',         region:'Europe' },
+    { tz:'Europe/Amsterdam',      city:'Amsterdam',      region:'Europe' },
+    { tz:'Europe/Brussels',       city:'Brussels',       region:'Europe' },
+    { tz:'Europe/Zurich',         city:'Zurich',         region:'Europe' },
+    { tz:'Europe/Frankfurt',      city:'Frankfurt',      region:'Europe' },
+    { tz:'Europe/Berlin',         city:'Berlin',         region:'Europe' },
+    { tz:'Europe/Rome',           city:'Rome',           region:'Europe' },
+    { tz:'Europe/Vienna',         city:'Vienna',         region:'Europe' },
+    { tz:'Europe/Warsaw',         city:'Warsaw',         region:'Europe' },
+    { tz:'Europe/Prague',         city:'Prague',         region:'Europe' },
+    { tz:'Europe/Stockholm',      city:'Stockholm',      region:'Europe' },
+    { tz:'Europe/Oslo',           city:'Oslo',           region:'Europe' },
+    { tz:'Europe/Copenhagen',     city:'Copenhagen',     region:'Europe' },
+    { tz:'Europe/Helsinki',       city:'Helsinki',       region:'Europe' },
+    { tz:'Europe/Athens',         city:'Athens',         region:'Europe' },
+    { tz:'Europe/Istanbul',       city:'Istanbul',       region:'Europe' },
+    { tz:'Europe/Kyiv',           city:'Kyiv',           region:'Europe' },
+    { tz:'Europe/Moscow',         city:'Moscow',         region:'Europe' },
+    // Africa & Middle East
+    { tz:'Africa/Cairo',          city:'Cairo',          region:'Africa / ME' },
+    { tz:'Africa/Johannesburg',   city:'Johannesburg',   region:'Africa / ME' },
+    { tz:'Africa/Lagos',          city:'Lagos',          region:'Africa / ME' },
+    { tz:'Africa/Nairobi',        city:'Nairobi',        region:'Africa / ME' },
+    { tz:'Africa/Casablanca',     city:'Casablanca',     region:'Africa / ME' },
+    { tz:'Asia/Riyadh',           city:'Riyadh',         region:'Africa / ME' },
+    { tz:'Asia/Dubai',            city:'Dubai',          region:'Africa / ME' },
+    { tz:'Asia/Kuwait',           city:'Kuwait City',    region:'Africa / ME' },
+    { tz:'Asia/Tehran',           city:'Tehran',         region:'Africa / ME' },
+    { tz:'Asia/Baghdad',          city:'Baghdad',        region:'Africa / ME' },
+    // Asia & Pacific
+    { tz:'Asia/Karachi',          city:'Karachi',        region:'Asia / Pacific' },
+    { tz:'Asia/Kolkata',          city:'Mumbai / Delhi', region:'Asia / Pacific' },
+    { tz:'Asia/Colombo',          city:'Colombo',        region:'Asia / Pacific' },
+    { tz:'Asia/Dhaka',            city:'Dhaka',          region:'Asia / Pacific' },
+    { tz:'Asia/Kathmandu',        city:'Kathmandu',      region:'Asia / Pacific' },
+    { tz:'Asia/Yangon',           city:'Yangon',         region:'Asia / Pacific' },
+    { tz:'Asia/Bangkok',          city:'Bangkok',        region:'Asia / Pacific' },
+    { tz:'Asia/Ho_Chi_Minh',      city:'Ho Chi Minh',    region:'Asia / Pacific' },
+    { tz:'Asia/Jakarta',          city:'Jakarta',        region:'Asia / Pacific' },
+    { tz:'Asia/Kuala_Lumpur',     city:'Kuala Lumpur',   region:'Asia / Pacific' },
+    { tz:'Asia/Singapore',        city:'Singapore',      region:'Asia / Pacific' },
+    { tz:'Asia/Manila',           city:'Manila',         region:'Asia / Pacific' },
+    { tz:'Asia/Shanghai',         city:'Shanghai',       region:'Asia / Pacific' },
+    { tz:'Asia/Hong_Kong',        city:'Hong Kong',      region:'Asia / Pacific' },
+    { tz:'Asia/Taipei',           city:'Taipei',         region:'Asia / Pacific' },
+    { tz:'Asia/Seoul',            city:'Seoul',          region:'Asia / Pacific' },
+    { tz:'Asia/Tokyo',            city:'Tokyo',          region:'Asia / Pacific' },
+    { tz:'Australia/Perth',       city:'Perth',          region:'Asia / Pacific' },
+    { tz:'Australia/Adelaide',    city:'Adelaide',       region:'Asia / Pacific' },
+    { tz:'Australia/Sydney',      city:'Sydney',         region:'Asia / Pacific' },
+    { tz:'Australia/Melbourne',   city:'Melbourne',      region:'Asia / Pacific' },
+    { tz:'Australia/Brisbane',    city:'Brisbane',       region:'Asia / Pacific' },
+    { tz:'Pacific/Auckland',      city:'Auckland',       region:'Asia / Pacific' },
+    { tz:'Pacific/Fiji',          city:'Fiji',           region:'Asia / Pacific' },
+    // UTC
+    { tz:'UTC',                   city:'UTC / GMT',      region:'Universal' },
+  ];
+
+  function getTzOffset(tz) {
+    try {
+      const now = new Date();
+      const parts = new Intl.DateTimeFormat('en', {
+        timeZone: tz, timeZoneName: 'shortOffset'
+      }).formatToParts(now);
+      const off = parts.find(p => p.type === 'timeZoneName');
+      return off ? off.value.replace('GMT', 'UTC') : 'UTC';
+    } catch(e) { return 'UTC'; }
+  }
+
+  function getTzCurrentTime(tz) {
+    try {
+      return new Date().toLocaleString('en-US', {
+        timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+      });
+    } catch(e) { return '—'; }
+  }
+
+  let _tzFiltered = [...TZ_LIST];
+  let _tzFocusIdx = -1;
+
+  function buildTzOptionHTML(entry) {
+    const offset = getTzOffset(entry.tz);
+    return `<div class="tz-option" data-tz="${entry.tz}" data-city="${entry.city}"
+      onmousedown="selectTimezone('${entry.tz}','${entry.city.replace(/'/g,"\\'")}')">
+      <span class="tz-city">${entry.city}</span>
+      <span class="tz-detail">${entry.tz} &nbsp;·&nbsp; ${entry.region}</span>
+      <span class="tz-offset">${offset}</span>
+    </div>`;
+  }
+
+  function openTzDropdown() {
+    filterTzOptions(document.getElementById('tzSearch').value || '');
+    document.getElementById('tzDropdown').classList.add('open');
+  }
+
+  function closeTzDropdown() {
+    document.getElementById('tzDropdown').classList.remove('open');
+    _tzFocusIdx = -1;
+  }
+
+  function filterTzOptions(q) {
+    const lq = q.toLowerCase().trim();
+    _tzFiltered = lq ? TZ_LIST.filter(e =>
+      e.city.toLowerCase().includes(lq) ||
+      e.tz.toLowerCase().includes(lq) ||
+      e.region.toLowerCase().includes(lq)
+    ) : [...TZ_LIST];
+    _tzFocusIdx = -1;
+    const dd = document.getElementById('tzDropdown');
+    dd.innerHTML = _tzFiltered.length
+      ? _tzFiltered.map(buildTzOptionHTML).join('')
+      : '<div class="tz-option"><span class="tz-detail">No results</span></div>';
+    dd.classList.add('open');
+  }
+
+  function selectTimezone(tz, city) {
+    userTimezone = tz;
+    try { localStorage.setItem('elexia_timezone', tz); } catch(e){}
+    document.getElementById('tzSearch').value = city + '  (' + getTzOffset(tz) + ')';
+    closeTzDropdown();
+    updateTzCurrentDisplay();
+    syncUiPrefs();
+  }
+
+  function updateTzCurrentDisplay() {
+    const el = document.getElementById('tzCurrentTime');
+    if (el) el.textContent = getTzCurrentTime(userTimezone) + '  ' + getTzOffset(userTimezone);
+  }
+
+  function tzKeyNav(e) {
+    const dd = document.getElementById('tzDropdown');
+    const opts = dd.querySelectorAll('.tz-option[data-tz]');
+    if (!dd.classList.contains('open') || !opts.length) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _tzFocusIdx = Math.min(_tzFocusIdx + 1, opts.length - 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _tzFocusIdx = Math.max(_tzFocusIdx - 1, 0);
+    } else if (e.key === 'Enter' && _tzFocusIdx >= 0) {
+      e.preventDefault();
+      const opt = opts[_tzFocusIdx];
+      selectTimezone(opt.dataset.tz, opt.dataset.city);
+      return;
+    } else if (e.key === 'Escape') {
+      closeTzDropdown(); return;
+    } else { return; }
+    opts.forEach((o, i) => o.classList.toggle('focused', i === _tzFocusIdx));
+    if (_tzFocusIdx >= 0) opts[_tzFocusIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('mousedown', function(e) {
+    const wrap = document.getElementById('tzPickerWrap');
+    if (wrap && !wrap.contains(e.target)) closeTzDropdown();
+  });
+
+  // Tick the current-time display every second when Profile is visible
+  setInterval(function() {
+    const profileTab = document.getElementById('tabProfile');
+    if (profileTab && profileTab.style.display !== 'none') updateTzCurrentDisplay();
+  }, 1000);
+
   async function loadProfile() {
     if (!currentUser) return;
     const { data, error } = await sb
@@ -3579,6 +3845,11 @@
     document.getElementById('profileEmail').textContent = currentUser.email;
     document.getElementById('editUsername').value = username;
     document.getElementById('editBio').value = currentProfile?.bio || '';
+    // Populate timezone picker
+    const tzEntry = TZ_LIST.find(e => e.tz === userTimezone);
+    const tzLabel = tzEntry ? tzEntry.city + '  (' + getTzOffset(userTimezone) + ')' : userTimezone;
+    document.getElementById('tzSearch').value = tzLabel;
+    updateTzCurrentDisplay();
 
     document.getElementById('infoEmail').textContent = currentUser.email;
     document.getElementById('infoId').textContent = currentUser.id.slice(0, 8) + '…';
@@ -4227,6 +4498,7 @@
       if (settings.ui_prefs && typeof settings.ui_prefs === 'object') {
         if (settings.ui_prefs.accView)      { accountViewMode    = settings.ui_prefs.accView;    try { localStorage.setItem('elexia_acc_view',      accountViewMode);    } catch(e){} }
         if (settings.ui_prefs.archivedView) { archivedViewMode   = settings.ui_prefs.archivedView; try { localStorage.setItem('elexia_archived_view', archivedViewMode);   } catch(e){} }
+        if (settings.ui_prefs.timezone)     { userTimezone       = settings.ui_prefs.timezone;   try { localStorage.setItem('elexia_timezone',      userTimezone);        } catch(e){} }
       }
     } else {
       // First time — create settings row with defaults
@@ -4319,12 +4591,13 @@
   }
 
   // ----- Load session for selected date + account -----
+  let _loadSessionToken = 0; // incremented on each call; stale loads self-abort
+
   async function loadSession() {
-    console.log('loadSession:', { activeAccountId, currentUser: !!currentUser });
     if (!currentUser) return;
+    const myToken = ++_loadSessionToken;
+
     if (!activeAccountId) {
-      console.warn('No active account — cannot load session');
-      // Clear UI so stale data doesn't persist
       currentSession = null;
       currentSessionId = null;
       currentTrades = [];
@@ -4336,16 +4609,16 @@
       setSaveStatus('journalSaveStatus', 'error', 'No trading account — go to Settings to add one');
       return;
     }
+
     const date = document.getElementById('journalDate').value;
     if (!date) {
       document.getElementById('journalDate').value = todayLocal();
       return loadSession();
     }
-    console.log('loading session for', date, 'account', activeAccountId);
 
     setSaveStatus('journalSaveStatus', 'saving', 'Loading…');
 
-    // Look up existing session
+    // ── Fetch session row ──
     const { data: session, error: sErr } = await sb
       .from('sessions')
       .select('*')
@@ -4353,44 +4626,54 @@
       .eq('account_id', activeAccountId)
       .eq('session_date', date)
       .maybeSingle();
+
+    if (myToken !== _loadSessionToken) return; // a newer load superseded this one
+
     if (sErr) {
-      console.error('session load error:', sErr);
       setSaveStatus('journalSaveStatus', 'error', 'Load failed');
       return;
     }
 
     if (session) {
       currentSession = session;
-      // Ensure review_state exists even if the DB column was added after this row was created
       if (!currentSession.review_state) currentSession.review_state = {};
       currentSessionId = session.id;
-      // Load trades
+
+      // ── Fetch trades ──
       const { data: trades } = await sb
-        .from('trades')
-        .select('*')
+        .from('trades').select('*')
         .eq('session_id', session.id)
         .order('trade_order', { ascending: true });
+
+      if (myToken !== _loadSessionToken) return;
       currentTrades = trades || [];
+
+      // ── Fetch photos for those trades ──
+      tradePhotos = {};
+      const tradeIds = currentTrades.map(t => t.id).filter(Boolean);
+      if (tradeIds.length > 0) {
+        const { data: photoRows } = await sb.from('trade_photos').select('*').in('trade_id', tradeIds);
+        if (myToken !== _loadSessionToken) return;
+        (photoRows || []).forEach(p => {
+          if (!tradePhotos[p.trade_id]) tradePhotos[p.trade_id] = [];
+          tradePhotos[p.trade_id].push(p);
+        });
+      }
     } else {
-      currentSession = {
-        session_date: date,
-        account_id: activeAccountId,
-        notes: '',
-        rules_state: {},
-        review_state: {}
-      };
+      currentSession = { session_date: date, account_id: activeAccountId, notes: '', rules_state: {}, review_state: {} };
       currentSessionId = null;
       currentTrades = [];
+      tradePhotos = {};
     }
 
-    // Render everything
+    if (myToken !== _loadSessionToken) return;
+
+    // ── Render ──
     document.getElementById('sessionNotes').value = currentSession.notes || '';
     renderRulesChecklist();
     renderSetupsReference();
     renderReviewChecklist();
     initSessionRatingUI();
-    // Load photos for the trades in this session
-    await loadPhotosForCurrentTrades();
     renderTrades();
     renderSummary();
     setSaveStatus('journalSaveStatus', '', '');
@@ -4683,8 +4966,16 @@
   }
 
   function getCurrentLocalTimeStr() {
-    const now = new Date();
-    return String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    try {
+      const s = new Date().toLocaleString('en-US', {
+        timeZone: userTimezone, hour: '2-digit', minute: '2-digit', hour12: false
+      });
+      // toLocaleString can return '24:xx' when hour is midnight — normalise
+      return s.replace(/^24:/, '00:');
+    } catch(e) {
+      const now = new Date();
+      return String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+    }
   }
 
   function addTrade() {
@@ -5465,7 +5756,7 @@
 
   function saveUiPrefs() {
     if (!currentUser) return;
-    const prefs = { accView: accountViewMode, archivedView: archivedViewMode };
+    const prefs = { accView: accountViewMode, archivedView: archivedViewMode, timezone: userTimezone };
     sb.from('user_settings')
       .upsert({ user_id: currentUser.id, ui_prefs: prefs }, { onConflict: 'user_id' })
       .then(({ error }) => { if (error) console.error('ui_prefs sync error:', error); });
