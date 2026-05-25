@@ -723,7 +723,7 @@
   .tz-picker-wrap { position: relative; }
   .tz-search {
     width: 100%;
-    padding: 10px 12px;
+    padding: 10px 36px 10px 12px;
     background: var(--bg);
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -731,9 +731,65 @@
     font-size: 14px;
     outline: none;
     box-sizing: border-box;
-    cursor: pointer;
+    cursor: text;
   }
   .tz-search:focus { border-color: var(--pink); }
+  .tz-search-icon {
+    position: absolute;
+    right: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--muted); pointer-events: none; font-size: 14px;
+  }
+  /* Segmented toggle buttons */
+  .seg-group {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .seg-btn {
+    flex: 1;
+    padding: 8px 10px;
+    background: var(--bg);
+    border: none;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    font-family: inherit;
+  }
+  .seg-btn + .seg-btn { border-left: 1px solid var(--border); }
+  .seg-btn.active { background: var(--pink, #e91e8c); color: #fff; font-weight: 700; }
+  .seg-btn:not(.active):hover { background: rgba(255,255,255,0.06); color: var(--text); }
+  /* Inline toggle switch (for show/hide toggles) */
+  .profile-row-inline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .profile-row-inline label { font-size: 13px; color: var(--text); }
+  .pill-toggle { position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0; }
+  .pill-toggle input { opacity: 0; width: 0; height: 0; }
+  .pill-toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 22px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .pill-toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; top: 3px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .pill-toggle input:checked + .pill-toggle-slider { background: var(--pink, #e91e8c); }
+  .pill-toggle input:checked + .pill-toggle-slider:before { transform: translateX(18px); }
   .tz-dropdown {
     display: none;
     position: absolute;
@@ -3039,12 +3095,40 @@
         <div class="tz-picker-wrap" id="tzPickerWrap">
           <input type="text" class="tz-search" id="tzSearch" placeholder="Search city or timezone…" autocomplete="off"
             oninput="filterTzOptions(this.value)"
-            onfocus="openTzDropdown()"
+            onfocus="openTzDropdownFocus()"
+            onblur="restoreTzLabel()"
             onkeydown="tzKeyNav(event)" />
+          <span class="tz-search-icon">▾</span>
           <div class="tz-dropdown" id="tzDropdown"></div>
         </div>
         <div class="tz-current-display" id="tzCurrentDisplay">
           Current time: <span id="tzCurrentTime">—</span>
+        </div>
+      </div>
+
+      <div class="profile-field">
+        <label>Time Format</label>
+        <div class="seg-group">
+          <button class="seg-btn active" id="fmt24btn" onclick="setTimeFormat('24h')">24h &nbsp;(14:30)</button>
+          <button class="seg-btn" id="fmt12btn" onclick="setTimeFormat('12h')">12h &nbsp;(2:30 PM)</button>
+        </div>
+      </div>
+
+      <div class="profile-field" style="margin-bottom:6px">
+        <label style="margin-bottom:10px;display:block">Session Widget — Time Display</label>
+        <div class="profile-row-inline">
+          <label>Show time in session bar</label>
+          <label class="pill-toggle">
+            <input type="checkbox" id="sessShowTimeToggle" onchange="setSessionShowTime(this.checked)" checked />
+            <span class="pill-toggle-slider"></span>
+          </label>
+        </div>
+        <div id="sessTimeTzField">
+          <label style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;display:block;margin-bottom:6px">Session bar clock timezone</label>
+          <div class="seg-group">
+            <button class="seg-btn active" id="sessTzETbtn" onclick="setSessionTimeTz('ET')">New York (ET)</button>
+            <button class="seg-btn" id="sessTzLocalbtn" onclick="setSessionTimeTz('local')">My Timezone</button>
+          </div>
         </div>
       </div>
 
@@ -3491,7 +3575,17 @@
   // ============================================================
   let currentUser = null;
   let currentProfile = null;
-  let userTimezone = (function(){ try { return localStorage.getItem('elexia_timezone') || Intl.DateTimeFormat().resolvedOptions().timeZone; } catch(e){ return 'America/New_York'; } })();
+  let userTimezone   = (function(){ try { return localStorage.getItem('elexia_timezone')    || Intl.DateTimeFormat().resolvedOptions().timeZone; } catch(e){ return 'America/New_York'; } })();
+  let hour12Format   = (function(){ try { return localStorage.getItem('elexia_hour12') === 'true'; } catch(e){ return false; } })();
+  let sessionShowTime = (function(){ try { const v = localStorage.getItem('elexia_sess_time'); return v === null ? true : v === 'true'; } catch(e){ return true; } })();
+  let sessionTimeTz  = (function(){ try { return localStorage.getItem('elexia_sess_tz') || 'ET'; } catch(e){ return 'ET'; } })();
+  // Expose to session widget IIFE
+  Object.defineProperties(window, {
+    userTimezone:    { get: () => userTimezone,    configurable: true },
+    hour12Format:    { get: () => hour12Format,    configurable: true },
+    sessionShowTime: { get: () => sessionShowTime, configurable: true },
+    sessionTimeTz:   { get: () => sessionTimeTz,   configurable: true },
+  });
   let activeTab = 'journal';
 
   // ============================================================
@@ -3746,14 +3840,69 @@
     </div>`;
   }
 
+  function _tzFormattedLabel(tz) {
+    const entry = TZ_LIST.find(e => e.tz === tz);
+    return entry ? entry.city + '  (' + getTzOffset(tz) + ')' : tz;
+  }
+
+  function openTzDropdownFocus() {
+    // Clear the field so user can type a fresh search immediately
+    const input = document.getElementById('tzSearch');
+    input.value = '';
+    filterTzOptions('');
+    document.getElementById('tzDropdown').classList.add('open');
+  }
+
   function openTzDropdown() {
     filterTzOptions(document.getElementById('tzSearch').value || '');
     document.getElementById('tzDropdown').classList.add('open');
   }
 
+  function restoreTzLabel() {
+    // On blur without a selection, restore the formatted label after a short delay
+    // (delay lets mousedown on an option fire first)
+    setTimeout(() => {
+      const dd = document.getElementById('tzDropdown');
+      if (dd && !dd.classList.contains('open')) return; // already closed by selectTimezone
+      const input = document.getElementById('tzSearch');
+      if (input && document.activeElement !== input) {
+        input.value = _tzFormattedLabel(userTimezone);
+        closeTzDropdown();
+      }
+    }, 200);
+  }
+
   function closeTzDropdown() {
     document.getElementById('tzDropdown').classList.remove('open');
     _tzFocusIdx = -1;
+  }
+
+  function setTimeFormat(fmt) {
+    hour12Format = fmt === '12h';
+    try { localStorage.setItem('elexia_hour12', hour12Format); } catch(e){}
+    document.getElementById('fmt24btn')?.classList.toggle('active', !hour12Format);
+    document.getElementById('fmt12btn')?.classList.toggle('active', hour12Format);
+    updateTzCurrentDisplay();
+    syncUiPrefs();
+    window.renderMarketSession && window.renderMarketSession();
+  }
+
+  function setSessionShowTime(show) {
+    sessionShowTime = !!show;
+    try { localStorage.setItem('elexia_sess_time', sessionShowTime); } catch(e){}
+    const tzField = document.getElementById('sessTimeTzField');
+    if (tzField) tzField.style.display = sessionShowTime ? '' : 'none';
+    syncUiPrefs();
+    window.renderMarketSession && window.renderMarketSession();
+  }
+
+  function setSessionTimeTz(tz) {
+    sessionTimeTz = tz;
+    try { localStorage.setItem('elexia_sess_tz', tz); } catch(e){}
+    document.getElementById('sessTzETbtn')?.classList.toggle('active', tz === 'ET');
+    document.getElementById('sessTzLocalbtn')?.classList.toggle('active', tz === 'local');
+    syncUiPrefs();
+    window.renderMarketSession && window.renderMarketSession();
   }
 
   function filterTzOptions(q) {
@@ -3774,15 +3923,25 @@
   function selectTimezone(tz, city) {
     userTimezone = tz;
     try { localStorage.setItem('elexia_timezone', tz); } catch(e){}
-    document.getElementById('tzSearch').value = city + '  (' + getTzOffset(tz) + ')';
+    document.getElementById('tzSearch').value = _tzFormattedLabel(tz);
     closeTzDropdown();
     updateTzCurrentDisplay();
     syncUiPrefs();
   }
 
+  function fmtTimeInTz(tz) {
+    try {
+      return new Date().toLocaleString('en-US', {
+        timeZone: tz,
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: hour12Format
+      });
+    } catch(e) { return '—'; }
+  }
+
   function updateTzCurrentDisplay() {
     const el = document.getElementById('tzCurrentTime');
-    if (el) el.textContent = getTzCurrentTime(userTimezone) + '  ' + getTzOffset(userTimezone);
+    if (el) el.textContent = fmtTimeInTz(userTimezone) + '  ' + getTzOffset(userTimezone);
   }
 
   function tzKeyNav(e) {
@@ -3846,10 +4005,18 @@
     document.getElementById('editUsername').value = username;
     document.getElementById('editBio').value = currentProfile?.bio || '';
     // Populate timezone picker
-    const tzEntry = TZ_LIST.find(e => e.tz === userTimezone);
-    const tzLabel = tzEntry ? tzEntry.city + '  (' + getTzOffset(userTimezone) + ')' : userTimezone;
-    document.getElementById('tzSearch').value = tzLabel;
+    document.getElementById('tzSearch').value = _tzFormattedLabel(userTimezone);
     updateTzCurrentDisplay();
+    // Time format buttons
+    document.getElementById('fmt24btn')?.classList.toggle('active', !hour12Format);
+    document.getElementById('fmt12btn')?.classList.toggle('active', hour12Format);
+    // Session time toggles
+    const stt = document.getElementById('sessShowTimeToggle');
+    if (stt) stt.checked = sessionShowTime;
+    const tzField = document.getElementById('sessTimeTzField');
+    if (tzField) tzField.style.display = sessionShowTime ? '' : 'none';
+    document.getElementById('sessTzETbtn')?.classList.toggle('active', sessionTimeTz === 'ET');
+    document.getElementById('sessTzLocalbtn')?.classList.toggle('active', sessionTimeTz === 'local');
 
     document.getElementById('infoEmail').textContent = currentUser.email;
     document.getElementById('infoId').textContent = currentUser.id.slice(0, 8) + '…';
@@ -4499,6 +4666,9 @@
         if (settings.ui_prefs.accView)      { accountViewMode    = settings.ui_prefs.accView;    try { localStorage.setItem('elexia_acc_view',      accountViewMode);    } catch(e){} }
         if (settings.ui_prefs.archivedView) { archivedViewMode   = settings.ui_prefs.archivedView; try { localStorage.setItem('elexia_archived_view', archivedViewMode);   } catch(e){} }
         if (settings.ui_prefs.timezone)     { userTimezone       = settings.ui_prefs.timezone;   try { localStorage.setItem('elexia_timezone',      userTimezone);        } catch(e){} }
+        if (settings.ui_prefs.hour12 != null) { hour12Format    = !!settings.ui_prefs.hour12;    try { localStorage.setItem('elexia_hour12',        hour12Format);        } catch(e){} }
+        if (settings.ui_prefs.sessShowTime != null) { sessionShowTime = !!settings.ui_prefs.sessShowTime; try { localStorage.setItem('elexia_sess_time', sessionShowTime); } catch(e){} }
+        if (settings.ui_prefs.sessTimeTz)   { sessionTimeTz     = settings.ui_prefs.sessTimeTz; try { localStorage.setItem('elexia_sess_tz',       sessionTimeTz);       } catch(e){} }
       }
     } else {
       // First time — create settings row with defaults
@@ -4968,9 +5138,8 @@
   function getCurrentLocalTimeStr() {
     try {
       const s = new Date().toLocaleString('en-US', {
-        timeZone: userTimezone, hour: '2-digit', minute: '2-digit', hour12: false
+        timeZone: userTimezone, hour: '2-digit', minute: '2-digit', hour12: hour12Format
       });
-      // toLocaleString can return '24:xx' when hour is midnight — normalise
       return s.replace(/^24:/, '00:');
     } catch(e) {
       const now = new Date();
@@ -5756,7 +5925,7 @@
 
   function saveUiPrefs() {
     if (!currentUser) return;
-    const prefs = { accView: accountViewMode, archivedView: archivedViewMode, timezone: userTimezone };
+    const prefs = { accView: accountViewMode, archivedView: archivedViewMode, timezone: userTimezone, hour12: hour12Format, sessShowTime: sessionShowTime, sessTimeTz: sessionTimeTz };
     sb.from('user_settings')
       .upsert({ user_id: currentUser.id, ui_prefs: prefs }, { onConflict: 'user_id' })
       .then(({ error }) => { if (error) console.error('ui_prefs sync error:', error); });
@@ -6693,6 +6862,17 @@
       });
     }
 
+    function sessionClockStr() {
+      // Returns the time string to show in the session bar, respecting user prefs
+      if (!window.sessionShowTime) return '';
+      const tz = (window.sessionTimeTz === 'local') ? window.userTimezone : 'America/New_York';
+      const label = (window.sessionTimeTz === 'local') ? '' : 'ET ';
+      const t = new Date().toLocaleString('en-US', {
+        timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: !!window.hour12Format
+      });
+      return label + t;
+    }
+
     function fmtMins(m) {
       const h = Math.floor(m / 60);
       const mm = m % 60;
@@ -6751,7 +6931,7 @@
               <span style="color:#ff6666;font-size:13px;font-weight:700;letter-spacing:0.05em">MARKET CLOSED</span>
             </div>
           </div>
-          <div class="ms-next">${dow} &nbsp;·&nbsp; ET ${etTimeStr()} &nbsp;·&nbsp; ${reopenMsg}</div>`;
+          <div class="ms-next">${dow}${sessionClockStr() ? ' &nbsp;·&nbsp; ' + sessionClockStr() : ''} &nbsp;·&nbsp; ${reopenMsg}</div>`;
         return;
       }
 
@@ -6795,7 +6975,7 @@
         : '';
 
       const nextHtml = nextEv
-        ? `<div class="ms-next">${dow} &nbsp;·&nbsp; ET ${etTimeStr()} &nbsp;·&nbsp; <b>${nextEv.label}</b> in <b>${fmtMins(nextEv.mins)}</b></div>`
+        ? `<div class="ms-next">${dow}${sessionClockStr() ? ' &nbsp;·&nbsp; ' + sessionClockStr() : ''} &nbsp;·&nbsp; <b>${nextEv.label}</b> in <b>${fmtMins(nextEv.mins)}</b></div>`
         : '';
 
       el.innerHTML = `<div class="ms-sessions">${pillsHtml}${globexHtml}${overlapHtml}</div>${nextHtml}`;
