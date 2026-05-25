@@ -1586,6 +1586,24 @@
     transition: border-color 0.15s;
   }
   .acc-name-input:focus { border-bottom-color: rgba(252,0,255,0.4); }
+  .acc-nickname-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid transparent;
+    color: var(--muted);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 1px 0 2px;
+    margin-top: 1px;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.15s;
+  }
+  .acc-nickname-input:focus { border-bottom-color: rgba(252,0,255,0.25); color: var(--text); }
+  .acc-nickname-input::placeholder { color: var(--dim, rgba(255,255,255,0.2)); font-style: italic; }
+  .acc-name-wrap { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+  .acc-list-nick { font-size: 10px; color: var(--muted); font-weight: 400; margin-left: 4px; }
   .acc-card-badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
   .acc-type-select {
     background: var(--panel2);
@@ -3575,6 +3593,14 @@
   // ============================================================
   let currentUser = null;
   let currentProfile = null;
+  let accountNicknames = {}; // { accountId: nickString } — stored in ui_prefs
+
+  // Returns the display label for an account (used in <option> text)
+  function accOptionLabel(a) {
+    const nick = accountNicknames[a.id];
+    return a.name + (nick ? ' · ' + nick : '');
+  }
+
   let userTimezone   = (function(){ try { return localStorage.getItem('elexia_timezone')    || Intl.DateTimeFormat().resolvedOptions().timeZone; } catch(e){ return 'America/New_York'; } })();
   let hour12Format   = (function(){ try { return localStorage.getItem('elexia_hour12') === 'true'; } catch(e){ return false; } })();
   let sessionShowTime = (function(){ try { const v = localStorage.getItem('elexia_sess_time'); return v === null ? true : v === 'true'; } catch(e){ return true; } })();
@@ -4669,6 +4695,7 @@
         if (settings.ui_prefs.hour12 != null) { hour12Format    = !!settings.ui_prefs.hour12;    try { localStorage.setItem('elexia_hour12',        hour12Format);        } catch(e){} }
         if (settings.ui_prefs.sessShowTime != null) { sessionShowTime = !!settings.ui_prefs.sessShowTime; try { localStorage.setItem('elexia_sess_time', sessionShowTime); } catch(e){} }
         if (settings.ui_prefs.sessTimeTz)   { sessionTimeTz     = settings.ui_prefs.sessTimeTz; try { localStorage.setItem('elexia_sess_tz',       sessionTimeTz);       } catch(e){} }
+        if (settings.ui_prefs.accountNicknames && typeof settings.ui_prefs.accountNicknames === 'object') { accountNicknames = settings.ui_prefs.accountNicknames; }
       }
     } else {
       // First time — create settings row with defaults
@@ -4736,7 +4763,7 @@
   function renderAccountPicker() {
     const sel = document.getElementById('accountPicker');
     sel.innerHTML = userAccounts.map(a =>
-      `<option value="${a.id}" ${a.id === activeAccountId ? 'selected' : ''}>${escapeHtml(a.name)}</option>`
+      `<option value="${a.id}" ${a.id === activeAccountId ? 'selected' : ''}>${escapeHtml(accOptionLabel(a))}</option>`
     ).join('');
   }
 
@@ -5078,7 +5105,7 @@
       const acctId = t.account_id || '';
       const acctOpts = `<option value="" ${!acctId ? 'selected' : ''}>— No Account —</option>` +
         userAccounts.map(a =>
-          `<option value="${a.id}" ${a.id === acctId ? 'selected' : ''}>${escapeHtml(a.name)}</option>`
+          `<option value="${a.id}" ${a.id === acctId ? 'selected' : ''}>${escapeHtml(accOptionLabel(a))}</option>`
         ).join('');
       return `<div class="trade-row" data-idx="${i}">
         <div class="trade-num">#${i+1}</div>
@@ -5099,7 +5126,7 @@
         <button class="trade-del" onclick="deleteTrade(${i})" title="Delete trade">×</button>
         <div style="grid-column:2/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
           <span style="font-size:11px;color:var(--muted);flex-shrink:0">Account:</span>
-          <select style="flex:1;min-width:120px;padding:6px 10px;background:var(--panel2);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="updateTrade(${i},'account_id',this.value)">
+          <select data-acc-sel="1" style="flex:1;min-width:120px;padding:6px 10px;background:var(--panel2);border:1px solid var(--input-border);border-radius:6px;color:var(--text);font-size:12px;font-family:inherit" onchange="updateTrade(${i},'account_id',this.value)">
             ${acctOpts}
           </select>
           <span style="font-size:11px;color:var(--muted);flex-shrink:0">Session:</span>
@@ -5732,8 +5759,13 @@
       return `
         <div class="account-card status-${status}${isArchived?' acc-archived':''}">
           <div class="acc-card-top">
-            <input class="acc-name-input" data-acc-id="${a.id}" data-field="name"
-              value="${escapeHtml(a.name)}" oninput="updateAccountField('${a.id}','name',this.value)" />
+            <div class="acc-name-wrap">
+              <input class="acc-name-input" data-acc-id="${a.id}" data-field="name"
+                value="${escapeHtml(a.name)}" oninput="updateAccountField('${a.id}','name',this.value)" />
+              <input class="acc-nickname-input" placeholder="+ nickname (e.g. 50K #1)"
+                value="${escapeHtml(accountNicknames[a.id] || '')}"
+                oninput="updateAccountNickname('${a.id}', this.value)" />
+            </div>
             ${topControls}
           </div>
           <div class="acc-fields-grid">
@@ -5822,7 +5854,7 @@
       const currClass = current > starting ? 'pos' : current < starting ? 'neg' : '';
       const pnlClass  = stats.totalPnl > 0 ? 'pos' : stats.totalPnl < 0 ? 'neg' : '';
       return `<div class="acc-list-row">
-        <span class="acc-list-name">${escapeHtml(a.name)}</span>
+        <span class="acc-list-name">${escapeHtml(a.name)}${accountNicknames[a.id] ? `<span class="acc-list-nick">· ${escapeHtml(accountNicknames[a.id])}</span>` : ''}</span>
         <span class="acc-list-type">${(a.account_type||'personal').toUpperCase()}</span>
         <span class="acc-list-status" style="color:${sColor}">${status.toUpperCase()}</span>
         <span class="acc-list-val ${currClass}">${formatMoney(current)}</span>
@@ -5925,7 +5957,7 @@
 
   function saveUiPrefs() {
     if (!currentUser) return;
-    const prefs = { accView: accountViewMode, archivedView: archivedViewMode, timezone: userTimezone, hour12: hour12Format, sessShowTime: sessionShowTime, sessTimeTz: sessionTimeTz };
+    const prefs = { accView: accountViewMode, archivedView: archivedViewMode, timezone: userTimezone, hour12: hour12Format, sessShowTime: sessionShowTime, sessTimeTz: sessionTimeTz, accountNicknames };
     sb.from('user_settings')
       .upsert({ user_id: currentUser.id, ui_prefs: prefs }, { onConflict: 'user_id' })
       .then(({ error }) => { if (error) console.error('ui_prefs sync error:', error); });
@@ -6079,6 +6111,29 @@
 
   // Debounce timer for account field saves
   const _accSaveTimers = {};
+
+  function updateAccountNickname(accId, value) {
+    const nick = value.trim();
+    if (nick) { accountNicknames[accId] = nick; }
+    else { delete accountNicknames[accId]; }
+    syncUiPrefs();
+    // Refresh dropdowns so the new label is visible immediately
+    renderAccountPicker();
+    // Refresh trade row account selects without re-rendering everything
+    document.querySelectorAll(`select[data-acc-sel]`).forEach(sel => {
+      const cur = sel.value;
+      sel.innerHTML = [{ id: '', name: 'No Account' }, ...userAccounts]
+        .map(a => `<option value="${a.id}" ${a.id === cur ? 'selected' : ''}>${a.id ? accOptionLabel(a) : 'No Account'}</option>`)
+        .join('');
+    });
+    // Refresh dashboard account filter
+    const daf = document.getElementById('dashAccountFilter');
+    if (daf) {
+      const cur = daf.value;
+      daf.innerHTML = `<option value="all">All Accounts</option>` +
+        userAccounts.map(a => `<option value="${a.id}" ${a.id === cur ? 'selected' : ''}>${accOptionLabel(a)}</option>`).join('');
+    }
+  }
 
   async function updateAccountField(accId, field, value) {
     const acc = userAccounts.find(a => a.id === accId);
@@ -6503,7 +6558,7 @@
     const accFilter = document.getElementById('dashAccountFilter');
     if (accFilter.options.length <= 1) {
       accFilter.innerHTML = '<option value="all">All accounts</option>' +
-        userAccounts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+        userAccounts.map(a => `<option value="${a.id}">${escapeHtml(accOptionLabel(a))}</option>`).join('');
     }
 
     const filters = getDashFilters();
