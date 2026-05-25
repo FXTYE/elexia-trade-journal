@@ -53,6 +53,11 @@
   body {
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     position: relative;
+    /* Scale body so 100% browser zoom matches 110% visual density.
+       zoom on body (not html) lets vw/vh stay accurate while content scales 10% larger. */
+    zoom: 1.1;
+    width: calc(100vw / 1.1);
+    min-height: calc(100dvh / 1.1);
   }
   body::before {
     content: '';
@@ -1941,6 +1946,18 @@
   }
 
   /* ===========================
+     NAV SVG ICONS — global so they work on all screen sizes
+     =========================== */
+  .nav-svg-icon {
+    width: var(--nav-icon-sz, 20px);
+    height: var(--nav-icon-sz, 20px);
+    flex-shrink: 0;
+    display: block;
+    fill: currentColor;   /* CSS override so mobile/Safari respects fill */
+  }
+  .sidebar-icon, .nav-drawer-icon { color: var(--nav-icon-clr, inherit); }
+
+  /* ===========================
      DESKTOP SIDEBAR NAV
      =========================== */
   .app-content-layout {
@@ -2004,33 +2021,6 @@
       align-items: center;
       justify-content: center;
     }
-    .nav-svg-icon {
-      width: var(--nav-icon-sz, 20px);
-      height: var(--nav-icon-sz, 20px);
-      flex-shrink: 0;
-      display: block;
-      fill: currentColor;   /* CSS override so mobile browsers respect it */
-    }
-    /* When icon color is explicitly set via admin */
-    .sidebar-icon, .nav-drawer-icon { color: var(--nav-icon-clr, inherit); }
-    /* Icon preview panel */
-    #iconPreviewPanel {
-      font-family: system-ui, -apple-system, sans-serif;
-    }
-    .icon-fill-btn {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      color: #888;
-      cursor: pointer;
-      font-size: 11px;
-      font-family: system-ui, -apple-system, sans-serif;
-      font-weight: 600;
-      padding: 4px 10px;
-      transition: all 0.15s;
-    }
-    .icon-fill-btn:hover { background: rgba(0,255,252,0.1); border-color: rgba(0,255,252,0.3); color: #00fffc; }
-    .icon-fill-btn.active { background: rgba(0,255,252,0.18); border-color: rgba(0,255,252,0.5); color: #00fffc; }
     .app-sidebar-divider {
       height: 1px;
       background: var(--border);
@@ -6554,139 +6544,7 @@
     settings:  `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="3.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="5" r="3"/><rect x="20.5" y="3.5" width="1.5" height="3" rx="1.5"/><rect x="2" y="10.5" width="1.5" height="3" rx="1.5"/><circle cx="6.5" cy="12" r="3"/><rect x="9.5" y="10.5" width="12.5" height="3" rx="1.5"/><rect x="2" y="17.5" width="12.5" height="3" rx="1.5"/><circle cx="17.5" cy="19" r="3"/><rect x="20.5" y="17.5" width="1.5" height="3" rx="1.5"/></svg>`,
     profile:   `<svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="8" r="4.5"/><path d="M3 21c0-4.97 4.03-9 9-9s9 4.03 9 9H3z"/></svg>`,
   };
-  const _ICON_LABELS = { journal:'Journal', dashboard:'Dashboard', accounts:'Accounts', settings:'Settings', profile:'Profile' };
-  let _iconFill = 'white', _iconSize = 24, _iconBg = '#111827';
-
-  function _buildIconGrid() {
-    const grid = document.getElementById('_iconPrevGrid');
-    if (!grid) return;
-    grid.innerHTML = Object.entries(_NAV_ICON_SVGS).map(([k, svg]) => `
-      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px">
-        <div class="_ipw" data-key="${k}" style="display:flex;align-items:center;justify-content:center;width:52px;height:52px;border-radius:10px;transition:background 0.2s">${svg}</div>
-        <span style="font-size:9px;color:#555;text-transform:uppercase;letter-spacing:0.06em;font-weight:600">${_ICON_LABELS[k]}</span>
-      </div>`).join('');
-    _applyIconPreview();
-  }
-
-  function _applyIconPreview() {
-    const grid = document.getElementById('_iconPrevGrid');
-    if (!grid) return;
-    grid.style.background = _iconBg;
-    const svgs = grid.querySelectorAll('svg');
-    const fills = { white:'#ffffff', cyan:'#00fffc', magenta:'#fc00ff', dark:'#1a1a2e', muted:'#6b7280' };
-    svgs.forEach(svg => {
-      svg.style.width = _iconSize + 'px';
-      svg.style.height = _iconSize + 'px';
-      if (_iconFill === 'gradient') {
-        svg.setAttribute('fill', 'url(#_ipGrad)');
-        svg.querySelectorAll('[stroke="currentColor"]').forEach(el => el.setAttribute('stroke', '#00fffc'));
-        if (!svg.querySelector('defs')) {
-          const d = document.createElementNS('http://www.w3.org/2000/svg','defs');
-          d.innerHTML = '<linearGradient id="_ipGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fc00ff"/><stop offset="100%" stop-color="#00fffc"/></linearGradient>';
-          svg.insertBefore(d, svg.firstChild);
-        }
-      } else {
-        const c = fills[_iconFill] || document.getElementById('_iconCustomColor')?.value || '#fff';
-        svg.setAttribute('fill', 'currentColor');
-        svg.style.color = c;
-        svg.querySelectorAll('[stroke="currentColor"]').forEach(el => { el.removeAttribute('stroke'); el.setAttribute('stroke', 'currentColor'); });
-        svg.querySelectorAll('defs').forEach(d => d.remove());
-      }
-    });
-    // update wrapper bg
-    grid.querySelectorAll('._ipw').forEach(w => {
-      w.style.background = _iconBg === '#ffffff' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.05)';
-    });
-    document.getElementById('_iconSizeLbl').textContent = _iconSize + 'px';
-  }
-
-  window.toggleIconPreview = function() {
-    const p = document.getElementById('_iconPrevPanel');
-    if (!p) return;
-    const open = p.style.display !== 'none';
-    p.style.display = open ? 'none' : 'block';
-    if (!open) _buildIconGrid();
-  };
-  window._setIconFill = function(fill, btn) {
-    _iconFill = fill;
-    document.querySelectorAll('#_iconPrevPanel .icon-fill-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    _applyIconPreview();
-  };
-  window._setIconSize = function(v) { _iconSize = +v; _applyIconPreview(); };
-  window._setIconBg = function(bg, btn) {
-    _iconBg = bg;
-    document.querySelectorAll('#_iconPrevPanel .bg-btn').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    _applyIconPreview();
-  };
-  document.addEventListener('keydown', e => {
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'I') { e.preventDefault(); toggleIconPreview(); }
-  });
 </script>
-
-<!-- Hidden SVG gradient defs for icon preview -->
-<svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
-  <defs>
-    <linearGradient id="_ipGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fc00ff"/>
-      <stop offset="100%" stop-color="#00fffc"/>
-    </linearGradient>
-  </defs>
-</svg>
-
-<!-- Icon Preview Panel -->
-<div id="_iconPrevPanel" style="display:none;position:fixed;bottom:68px;right:16px;z-index:10000;width:360px;background:#0f1117;border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:18px;box-shadow:0 16px 48px rgba(0,0,0,0.6);font-family:system-ui,-apple-system,sans-serif;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-    <span style="font-size:11px;font-weight:700;color:#555;letter-spacing:0.1em;text-transform:uppercase">Nav Icon Preview</span>
-    <button onclick="toggleIconPreview()" style="background:none;border:none;color:#555;cursor:pointer;font-size:20px;line-height:1;padding:0;width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#555'">×</button>
-  </div>
-
-  <!-- Icon grid -->
-  <div id="_iconPrevGrid" style="display:grid;grid-template-columns:repeat(5,1fr);border-radius:10px;padding:8px;margin-bottom:16px;transition:background 0.2s"></div>
-
-  <!-- Fill style -->
-  <div style="margin-bottom:14px">
-    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px">Fill Style</div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
-      <button class="icon-fill-btn active" onclick="_setIconFill('white',this)">White</button>
-      <button class="icon-fill-btn" onclick="_setIconFill('cyan',this)">Cyan</button>
-      <button class="icon-fill-btn" onclick="_setIconFill('magenta',this)">Magenta</button>
-      <button class="icon-fill-btn" onclick="_setIconFill('gradient',this)">Gradient</button>
-      <button class="icon-fill-btn" onclick="_setIconFill('muted',this)">Muted</button>
-      <button class="icon-fill-btn" onclick="_setIconFill('dark',this)">Dark</button>
-      <input type="color" id="_iconCustomColor" value="#00fffc" title="Custom colour" oninput="_setIconFill('custom',null)" style="width:30px;height:28px;border-radius:5px;border:1px solid rgba(255,255,255,0.1);background:none;cursor:pointer;padding:2px">
-    </div>
-  </div>
-
-  <!-- Size -->
-  <div style="margin-bottom:14px">
-    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px">Size — <span id="_iconSizeLbl">24px</span></div>
-    <input type="range" min="14" max="44" value="24" oninput="_setIconSize(this.value)" style="width:100%;accent-color:#00fffc">
-  </div>
-
-  <!-- Background -->
-  <div>
-    <div style="font-size:10px;color:#555;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:7px">Preview Background</div>
-    <div style="display:flex;gap:5px">
-      <button class="icon-fill-btn bg-btn active" onclick="_setIconBg('#111827',this)">App Dark</button>
-      <button class="icon-fill-btn bg-btn" onclick="_setIconBg('#1e293b',this)">Navy</button>
-      <button class="icon-fill-btn bg-btn" onclick="_setIconBg('#ffffff',this)">White</button>
-      <button class="icon-fill-btn bg-btn" onclick="_setIconBg('transparent',this)">None</button>
-    </div>
-  </div>
-
-  <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.07);font-size:10px;color:#333;text-align:center">
-    Toggle with <kbd style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:3px;padding:1px 5px;font-size:10px">⌘⇧I</kbd>
-  </div>
-</div>
-
-<!-- Floating toggle button -->
-<button id="_iconPrevToggle" onclick="toggleIconPreview()" title="Icon Preview (⌘⇧I)"
-  style="position:fixed;bottom:16px;right:16px;z-index:9999;width:40px;height:40px;border-radius:10px;background:rgba(0,255,252,0.1);border:1px solid rgba(0,255,252,0.25);color:#00fffc;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:all 0.2s;backdrop-filter:blur(8px)"
-  onmouseover="this.style.background='rgba(0,255,252,0.2)'" onmouseout="this.style.background='rgba(0,255,252,0.1)'">
-  ⬡
-</button>
 
 </body>
 </html>
